@@ -6,4 +6,9 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Core\Core.csproj" />
+    <ProjectReference Include="..\ELearningPlatform.Model\ELearningPlatform.Model.csproj" />
+  </ItemGroup>
+
 </Project>
