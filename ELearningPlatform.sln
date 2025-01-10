@@ -9,15 +9,17 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "core", "core", "{FB99179E-C
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "projects", "projects", "{BEA4210C-689F-4766-80AE-91EBE8DF9510}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Core", "Core\Core.csproj", "{BD62036D-F6F0-4F2A-B669-5B9707563AC7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Core", "Core\Core.csproj", "{BD62036D-F6F0-4F2A-B669-5B9707563AC7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ELearningPlatform.Model", "ELearningPlatform.Model\ELearningPlatform.Model.csproj", "{EF6595B0-A8B6-48CD-AA27-5DABE1C99600}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ELearningPlatform.Model", "ELearningPlatform.Model\ELearningPlatform.Model.csproj", "{EF6595B0-A8B6-48CD-AA27-5DABE1C99600}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ELearningPlatform.Repository", "ELearningPlatform.Repository\ELearningPlatform.Repository.csproj", "{94500357-583C-4A56-8E1B-5FAA1ADA8BFA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ELearningPlatform.Repository", "ELearningPlatform.Repository\ELearningPlatform.Repository.csproj", "{94500357-583C-4A56-8E1B-5FAA1ADA8BFA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ELearningPlatform.Service", "ELearningPlatform.Service\ELearningPlatform.Service.csproj", "{856D55CB-D63B-480E-844B-72347A80745D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ELearningPlatform.Service", "ELearningPlatform.Service\ELearningPlatform.Service.csproj", "{856D55CB-D63B-480E-844B-72347A80745D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ELearningPlatform.Api", "ELearningPlatform.Api\ELearningPlatform.Api.csproj", "{0B63A84A-1AB3-49F0-B9C3-85FE84031F80}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ELearningPlatform.Api", "ELearningPlatform.Api\ELearningPlatform.Api.csproj", "{0B63A84A-1AB3-49F0-B9C3-85FE84031F80}"
+EndProject
+Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{172580AC-96EF-4735-898C-BD4D7D03D918}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -45,6 +47,10 @@ Global
 		{0B63A84A-1AB3-49F0-B9C3-85FE84031F80}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0B63A84A-1AB3-49F0-B9C3-85FE84031F80}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0B63A84A-1AB3-49F0-B9C3-85FE84031F80}.Release|Any CPU.Build.0 = Release|Any CPU
+		{172580AC-96EF-4735-898C-BD4D7D03D918}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{172580AC-96EF-4735-898C-BD4D7D03D918}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{172580AC-96EF-4735-898C-BD4D7D03D918}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{172580AC-96EF-4735-898C-BD4D7D03D918}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
