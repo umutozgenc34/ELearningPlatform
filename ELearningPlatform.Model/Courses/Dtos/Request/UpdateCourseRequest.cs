@@ -1,10 +1,12 @@
-﻿namespace ELearningPlatform.Model.Courses.Dtos.Request;
+﻿using Microsoft.AspNetCore.Http;
+
+namespace ELearningPlatform.Model.Courses.Dtos.Request;
 
 public record UpdateCourseRequest(
        Guid Id,
        string Name,
        string Description,
        decimal Price,
-       string? ImageUrl,
+       IFormFile? ImageFile,
        Guid CategoryId); 
 

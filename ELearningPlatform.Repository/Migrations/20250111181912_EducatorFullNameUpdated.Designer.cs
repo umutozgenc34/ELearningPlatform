@@ -4,6 +4,7 @@ using ELearningPlatform.Repository.Contexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ELearningPlatform.Repository.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250111181912_EducatorFullNameUpdated")]
+    partial class EducatorFullNameUpdated
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -102,10 +105,8 @@ namespace ELearningPlatform.Repository.Migrations
 
                             b1.Property<string>("EducatorFullName")
                                 .IsRequired()
-                                .ValueGeneratedOnAdd()
                                 .HasMaxLength(100)
-                                .HasColumnType("nvarchar(100)")
-                                .HasDefaultValue("Bilinmeyen Eğitmen");
+                                .HasColumnType("nvarchar(100)");
 
                             b1.Property<float>("Rating")
                                 .ValueGeneratedOnAdd()

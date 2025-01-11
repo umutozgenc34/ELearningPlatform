@@ -44,8 +44,14 @@ public class CourseConfiguration : IEntityTypeConfiguration<Course>
                 .HasDefaultValue(0);
 
             cd.Property(cd => cd.EducatorFullName)
+                .HasDefaultValue("Bilinmeyen Eğitmen")
                 .HasMaxLength(100);
+
         });
+
+        builder.Navigation(c => c.CourseDetails).AutoInclude();
+        builder.Navigation(c=> c.Category).AutoInclude();
+            
     }
 }
 

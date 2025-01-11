@@ -17,7 +17,8 @@ public class CoursesController(ICourseService courseService) : CustomBaseControl
     public async Task<IActionResult> GetCourseWithDetails(Guid id) => CreateActionResult(await courseService.GetCourseWithDetailsAsync(id));
 
     [HttpPost]
-    public async Task<IActionResult> CreateCourse(CreateCourseRequest request) => CreateActionResult(await courseService
+    [Consumes("multipart/form-data")]
+    public async Task<IActionResult> CreateCourse([FromForm] CreateCourseRequest request) => CreateActionResult(await courseService
         .CreateAsync(request));
     [HttpPut]
     public async Task<IActionResult> UpdateCourse(UpdateCourseRequest request) => CreateActionResult

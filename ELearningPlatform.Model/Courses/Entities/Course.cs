@@ -11,7 +11,7 @@ public sealed class Course : BaseEntity<Guid>
     public decimal Price { get; set; }
     public string? ImageUrl { get; set; }
 
-    public string UserId { get; set; } = default!;
+    public string? UserId { get; set; } 
     public int CategoryId { get; set; }
     public Category Category { get; set; } = default!;
     public CourseDetails CourseDetails { get; set; } = default!;

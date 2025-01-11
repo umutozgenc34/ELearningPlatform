@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Core.Infrastructures.CloudinaryServices;
 using Core.Response;
 using ELearningPlatform.Model.Courses.Dtos.Request;
 using ELearningPlatform.Model.Courses.Dtos.Response;
@@ -11,11 +12,19 @@ using System.Net;
 
 namespace ELearningPlatform.Service.Courses.Concretes;
 
-public class CourseService(ICourseRepository courseRepository,IMapper mapper,IUnitOfWork unitOfWork) : ICourseService
+public class CourseService(ICourseRepository courseRepository,IMapper mapper,IUnitOfWork unitOfWork,
+                            ICloudinaryService cloudinaryService) : ICourseService
 {
     public async Task<ServiceResult<CreateCourseResponse>> CreateAsync(CreateCourseRequest request)
     {
+        string imageUrl = string.Empty;
+        if (request.ImageFile != null)
+        {
+            imageUrl = await cloudinaryService.UploadImage(request.ImageFile, "course-images");
+        }
+
         var course = mapper.Map<Course>(request);
+        course.ImageUrl = imageUrl;
 
         await courseRepository.AddAsync(course);
         await unitOfWork.SaveChangesAsync();
@@ -96,6 +105,12 @@ public class CourseService(ICourseRepository courseRepository,IMapper mapper,IUn
         if (course is null)
         {
             return ServiceResult.Fail("Course bulunamadı.", HttpStatusCode.NotFound);
+        }
+
+        if (request.ImageFile != null)
+        {
+            string imageUrl = await cloudinaryService.UploadImage(request.ImageFile, "course-images");
+            course.ImageUrl = imageUrl;
         }
 
         var courseAsDto = mapper.Map(request, course);

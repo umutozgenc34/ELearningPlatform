@@ -10,7 +10,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddRepositoryExtension(builder.Configuration);
 builder.Services.AddServiceExtension();
-builder.Services.AddCommonServiceExtension(typeof(ServiceAssembly));
+builder.Services.AddCommonServiceExtension(typeof(ServiceAssembly),builder.Configuration);
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
