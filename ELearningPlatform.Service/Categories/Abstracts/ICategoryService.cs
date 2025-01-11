@@ -11,4 +11,5 @@ public interface ICategoryService
     Task<ServiceResult<CreateCategoryResponse>> CreateAsync(CreateCategoryRequest request);
     Task<ServiceResult> UpdateAsync(UpdateCategoryRequest request);
     Task<ServiceResult> DeleteAsync(int id);
+
 }

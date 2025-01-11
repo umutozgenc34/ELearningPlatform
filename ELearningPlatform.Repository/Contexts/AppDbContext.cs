@@ -1,4 +1,5 @@
 ﻿using ELearningPlatform.Model.Categories.Entity;
+using ELearningPlatform.Model.Courses.Entities;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection;
 
@@ -7,6 +8,7 @@ namespace ELearningPlatform.Repository.Contexts;
 public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
 {
     public DbSet<Category> Categories { get; set; }
+    public DbSet<Course> Courses { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

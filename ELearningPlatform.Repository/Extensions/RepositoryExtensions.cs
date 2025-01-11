@@ -2,6 +2,8 @@
 using ELearningPlatform.Repository.Categories.Abstracts;
 using ELearningPlatform.Repository.Categories.Concretes;
 using ELearningPlatform.Repository.Contexts;
+using ELearningPlatform.Repository.Courses.Abstracts;
+using ELearningPlatform.Repository.Courses.Concretes;
 using ELearningPlatform.Repository.Interceptors;
 using ELearningPlatform.Repository.UnitOfWorks.Abstracts;
 using ELearningPlatform.Repository.UnitOfWorks.Concretes;
@@ -30,6 +32,7 @@ public static class RepositoryExtensions
 
         services.AddScoped<IUnitOfWork,UnitOfWork>();
         services.AddScoped<ICategoryRepository,CategoryRepository>();
+        services.AddScoped<ICourseRepository,CourseRepository>();
 
         return services;
     }
