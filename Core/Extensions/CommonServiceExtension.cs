@@ -1,4 +1,5 @@
 ﻿using Core.Infrastructures.CloudinaryServices;
+using Core.Services;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using Microsoft.Extensions.Configuration;
@@ -14,6 +15,7 @@ public static class CommonServiceExtension
         services.AddFluentValidationAutoValidation();
         services.AddValidatorsFromAssemblyContaining(assembly);
 
+        services.AddScoped<IIdentityService,IdentityServiceFake>();
         services.AddScoped<ICloudinaryService, CloudinaryService>();
         services.Configure<CloudinarySettings>(configuration.GetSection("CloudinarySettings"));
         return services;

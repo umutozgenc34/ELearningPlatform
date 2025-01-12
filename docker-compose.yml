@@ -10,6 +10,17 @@ services:
       - "1433:1433"  
     volumes:
       - my_sql_data:/var/opt/mssql  
+
+  redis:
+    image: redis:latest
+    container_name: redis_container
+    ports:
+      - "6378:6379"
+    volumes:
+      - redis_data:/data
+
 volumes:
   my_sql_data:
+    driver: local
+  redis_data:
     driver: local
