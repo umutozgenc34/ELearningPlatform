@@ -1,5 +1,4 @@
-﻿using Azure.Core;
-using Core.Response;
+﻿using Core.Response;
 using Core.Services;
 using ELearningPlatform.Model.Baskets.Dtos.Request;
 using ELearningPlatform.Model.Baskets.Dtos.Responses;
@@ -9,7 +8,6 @@ using ELearningPlatform.Service.Courses.Abstracts;
 using Microsoft.Extensions.Caching.Distributed;
 using System.Net;
 using System.Text.Json;
-using System.Threading;
 
 namespace ELearningPlatform.Service.Baskets.Concretes;
 

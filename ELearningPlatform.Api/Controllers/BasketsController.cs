@@ -11,7 +11,7 @@ public class BasketsController(IBasketService basketService) : CustomBaseControl
         .AddBasketItemAsync(request));
 
     [HttpDelete("item/{id:guid}")]
-    public async Task<IActionResult> DeleteBasketItem(Guid id) => CreateActionResult(await basketService.DeleteBasketItemAsync(id));
+    public async Task<IActionResult> DeleteBasketItem([FromRoute]Guid id) => CreateActionResult(await basketService.DeleteBasketItemAsync(id));
 
     [HttpGet("user")]
     public async Task<IActionResult> GetBasket() => CreateActionResult(await basketService.GetBasketAsync());
