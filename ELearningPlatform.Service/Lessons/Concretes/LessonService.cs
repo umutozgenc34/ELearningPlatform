@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Core.Infrastructures.CloudinaryServices;
 using Core.Response;
 using ELearningPlatform.Model.Lessons.Dtos.Request;
 using ELearningPlatform.Model.Lessons.Dtos.Response;
@@ -7,9 +8,6 @@ using ELearningPlatform.Repository.Lessons.Abstracts;
 using ELearningPlatform.Repository.UnitOfWorks.Abstracts;
 using ELearningPlatform.Service.Lessons.Abstracts;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace ELearningPlatform.Service.Lessons
 {
@@ -18,12 +16,14 @@ namespace ELearningPlatform.Service.Lessons
         private readonly ILessonRepository _lessonRepository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly ICloudinaryService _cloudinaryService;
 
-        public LessonService(ILessonRepository lessonRepository, IUnitOfWork unitOfWork, IMapper mapper)
+        public LessonService(ILessonRepository lessonRepository, IUnitOfWork unitOfWork, IMapper mapper,ICloudinaryService cloudinaryService)
         {
             _lessonRepository = lessonRepository;
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _cloudinaryService = cloudinaryService;
         }
 
         // Tüm dersleri alır
@@ -50,7 +50,16 @@ namespace ELearningPlatform.Service.Lessons
         // Yeni bir ders ekler
         public async Task<ServiceResult<CreateLessonResponse>> CreateAsync(CreateLessonRequest request)
         {
+            
+            string videoUrl = string.Empty;
+
+            if (request.VideoFile != null)
+            {
+                videoUrl = await _cloudinaryService.UploadVideo(request.VideoFile, "lessons/videos");
+            }
+
             var lesson = _mapper.Map<Lesson>(request);
+            lesson.VideoUrl = videoUrl;
             lesson.Created = DateTime.UtcNow;
             lesson.Updated = DateTime.UtcNow;
 
@@ -58,6 +67,7 @@ namespace ELearningPlatform.Service.Lessons
             await _unitOfWork.SaveChangesAsync();
 
             var lessonResponse = _mapper.Map<CreateLessonResponse>(lesson);
+
             return ServiceResult<CreateLessonResponse>.Success(lessonResponse);
         }
 

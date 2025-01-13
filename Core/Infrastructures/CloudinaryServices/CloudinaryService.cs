@@ -33,4 +33,26 @@ public sealed class CloudinaryService : ICloudinaryService
         }
         return string.Empty;
     }
+
+    public async Task<string> UploadVideo(IFormFile formFile, string videoDirectory)
+    {
+        if (formFile.Length > 0)
+        {
+            using var stream = formFile.OpenReadStream();
+
+            var uploadParams = new VideoUploadParams()
+            {
+                File = new FileDescription(formFile.FileName, stream),
+                Folder = videoDirectory
+            };
+
+            var videoUploadResult = await _cloudinary.UploadAsync(uploadParams);
+
+            string videoUrl = _cloudinary.Api.UrlVideoUp.BuildUrl(videoUploadResult.PublicId);
+
+            return videoUrl;
+        }
+
+        return string.Empty; 
+    }
 }

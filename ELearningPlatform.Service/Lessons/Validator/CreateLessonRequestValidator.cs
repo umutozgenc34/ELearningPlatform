@@ -13,7 +13,7 @@ namespace ELearningPlatform.Service.Lessons.Validator
         public CreateLessonRequestValidator()
         {
             // Video URL'nin boş olmaması gerektiğini doğrula
-            RuleFor(x => x.VideoUrl)
+            RuleFor(x => x.VideoFile)
                 .NotEmpty()
                 .WithMessage("Video URL is required.");
 
