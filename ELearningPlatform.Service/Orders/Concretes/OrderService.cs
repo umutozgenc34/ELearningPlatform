@@ -5,6 +5,7 @@ using ELearningPlatform.Model.Order.Enums;
 using ELearningPlatform.Repository.Orders.Abstracts;
 using ELearningPlatform.Service.Baskets.Abstracts;
 using ELearningPlatform.Service.Orders.Abstracts;
+using ELearningPlatform.Service.Payment.Abstracts;
 using System.Net;
 
 namespace ELearningPlatform.Service.Orders.Concretes;
@@ -14,15 +15,18 @@ public class OrderService : IOrderService
     private readonly IOrderRepository _orderRepository;
     private readonly IBasketService _basketService;
     private readonly IIdentityService _identityService;
+    private readonly IPaymentService _paymentService;
 
     public OrderService(
         IOrderRepository orderRepository,
         IBasketService basketService,
-        IIdentityService identityService)
+        IIdentityService identityService,
+        IPaymentService paymentService)
     {
         _orderRepository = orderRepository;
         _basketService = basketService;
         _identityService = identityService;
+        _paymentService = paymentService;
     }
 
     public async Task<ServiceResult> CreateOrderAsync()
@@ -55,11 +59,20 @@ public class OrderService : IOrderService
             Updated = DateTime.UtcNow
         };
 
+        var paymentResult = await _paymentService.ProcessPayment(order);
+
+        if (!paymentResult.IsSuccessful)
+        {
+            order.Status = OrderStatus.Canceled;
+            return ServiceResult.Fail(paymentResult.Message); 
+        }
+
+
         await _orderRepository.CreateAsync(order);
 
         await _basketService.DeleteBasketAsync();
 
-        return ServiceResult.Success();
+        return ServiceResult.Success(paymentResult.Message);
     }
 
     public async Task<ServiceResult<Order>> GetOrderByIdAsync(string orderId)
@@ -70,7 +83,7 @@ public class OrderService : IOrderService
         {
             return ServiceResult<Order>.Fail("Order not found.", HttpStatusCode.NotFound);
         }
-
+        order.Status = OrderStatus.Confirmed;
         return ServiceResult<Order>.Success(order);
     }
 

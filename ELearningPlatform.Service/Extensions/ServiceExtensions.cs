@@ -6,6 +6,8 @@ using ELearningPlatform.Service.Courses.Abstracts;
 using ELearningPlatform.Service.Courses.Concretes;
 using ELearningPlatform.Service.Orders.Abstracts;
 using ELearningPlatform.Service.Orders.Concretes;
+using ELearningPlatform.Service.Payment.Abstracts;
+using ELearningPlatform.Service.Payment.Concretes;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -19,6 +21,7 @@ public static class ServiceExtensions
         services.AddScoped<ICourseService, CourseService>();
         services.AddScoped<IBasketService,BasketService>();
         services.AddScoped<IOrderService, OrderService>();
+        services.AddScoped<IPaymentService, PaymentService>();
 
         services.AddStackExchangeRedisCache(options =>
         {

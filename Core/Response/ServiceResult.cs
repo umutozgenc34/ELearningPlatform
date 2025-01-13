@@ -8,12 +8,22 @@ public class ServiceResult
     [JsonIgnore] public HttpStatusCode Status { get; set; }
     [JsonIgnore] public bool IsSuccess => ErrorMessage == null || ErrorMessage.Count == 0;
     [JsonIgnore] public bool IsFail => !IsSuccess;
+    public string? Message { get; set;}
 
     public static ServiceResult Success(HttpStatusCode status = HttpStatusCode.OK)
     {
         return new ServiceResult()
         {
 
+            Status = status
+        };
+    }
+
+    public static ServiceResult Success(string message,HttpStatusCode status = HttpStatusCode.OK)
+    {
+        return new ServiceResult()
+        {
+            Message = message,
             Status = status
         };
     }
