@@ -15,8 +15,4 @@
     <ProjectReference Include="..\ELearningPlatform.Repository\ELearningPlatform.Repository.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Payment\Validator\" />
-  </ItemGroup>
-
 </Project>
