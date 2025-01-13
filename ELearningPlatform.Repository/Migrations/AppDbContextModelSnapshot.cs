@@ -78,6 +78,107 @@ namespace ELearningPlatform.Repository.Migrations
 
                     b.ToTable("Lessons");
                 });
+
+            modelBuilder.Entity("ELearningPlatform.Model.Courses.Entities.Course", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("CategoryId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<string>("ImageUrl")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<decimal>("Price")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CategoryId");
+
+                    b.ToTable("Courses");
+                });
+
+            modelBuilder.Entity("ELearningPlatform.Model.Discounts.Discount", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Coupon")
+                        .IsRequired()
+                        .HasMaxLength(12)
+                        .HasColumnType("nvarchar(12)");
+
+                    b.Property<decimal>("Rate")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Discounts");
+                });
+
+            modelBuilder.Entity("ELearningPlatform.Model.Courses.Entities.Course", b =>
+                {
+                    b.HasOne("ELearningPlatform.Model.Categories.Entity.Category", "Category")
+                        .WithMany()
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.OwnsOne("ELearningPlatform.Model.Courses.Entities.CourseDetails", "CourseDetails", b1 =>
+                        {
+                            b1.Property<Guid>("CourseId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<int>("Duration")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("int")
+                                .HasDefaultValue(0);
+
+                            b1.Property<string>("EducatorFullName")
+                                .IsRequired()
+                                .ValueGeneratedOnAdd()
+                                .HasMaxLength(100)
+                                .HasColumnType("nvarchar(100)")
+                                .HasDefaultValue("Bilinmeyen Eğitmen");
+
+                            b1.Property<float>("Rating")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("real")
+                                .HasDefaultValue(1f);
+
+                            b1.HasKey("CourseId");
+
+                            b1.ToTable("Courses");
+
+                            b1.WithOwner()
+                                .HasForeignKey("CourseId");
+                        });
+
+                    b.Navigation("Category");
+
+                    b.Navigation("CourseDetails")
+                        .IsRequired();
+                });
 #pragma warning restore 612, 618
         }
     }
