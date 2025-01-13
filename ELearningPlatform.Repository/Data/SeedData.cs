@@ -17,6 +17,7 @@ public static class SeedData
                 new() { Name = "Game Development" },
                 new() { Name = "Web" },
                 new() { Name = "UI/UX" },
+
                 new() { Name = "Data Science" },
                 new() { Name = "Cyber Security" }
             };

@@ -93,6 +93,18 @@ public class BasketService(IDistributedCache distributedCache,ICourseService cou
         return ServiceResult<BasketDto>.Success(basket);
     }
 
+    public async Task<ServiceResult> DeleteBasketAsync()
+    {
+        string userId = identityService.GetUserId;
+        var cacheKey = string.Format(BasketConsts.BacketCacheKey, userId);
+
+        await distributedCache.RemoveAsync(cacheKey);
+
+        return ServiceResult.Success();  
+    }
+
+
+
     private async Task CreateCacheAsync(BasketDto basketDto, string cacheKey)
     {
         var basketAsString = JsonSerializer.Serialize(basketDto);
