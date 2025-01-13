@@ -16,20 +16,17 @@ public class OrderService : IOrderService
     private readonly IOrderRepository _orderRepository;
     private readonly IBasketService _basketService;
     private readonly IIdentityService _identityService;
-    private readonly IPaymentService _paymentService;
     private readonly IDiscountService _discountService;
 
     public OrderService(
         IOrderRepository orderRepository,
         IBasketService basketService,
         IIdentityService identityService,
-        IPaymentService paymentService,
         IDiscountService discountService)
     {
         _orderRepository = orderRepository;
         _basketService = basketService;
         _identityService = identityService;
-        _paymentService = paymentService;
         _discountService = discountService;
     }
 
@@ -74,20 +71,11 @@ public class OrderService : IOrderService
             Updated = DateTime.UtcNow
         };
 
-        var paymentResult = await _paymentService.ProcessPayment(order);
-
-        if (!paymentResult.IsSuccessful)
-        {
-            order.Status = OrderStatus.Canceled;
-            return ServiceResult.Fail(paymentResult.Message); 
-        }
-
-
         await _orderRepository.CreateAsync(order);
 
         await _basketService.DeleteBasketAsync();
 
-        return ServiceResult.Success(paymentResult.Message);
+        return ServiceResult.Success("Sipariş oluşturuldu.");
     }
 
     public async Task<ServiceResult<Order>> GetOrderByIdAsync(string orderId)
@@ -138,6 +126,23 @@ public class OrderService : IOrderService
         }
 
         return ServiceResult<List<Order>>.Success(orders);
+    }
+
+    public async Task<ServiceResult> UpdateOrderStatusAsync(string orderId, OrderStatus status = OrderStatus.Pending)
+    {
+        var order = await _orderRepository.GetByIdAsync(orderId);
+
+        if (order == null)
+        {
+            return ServiceResult.Fail("Order not found.");
+        }
+
+        order.Status = status;
+        order.Updated = DateTime.UtcNow;
+
+        await _orderRepository.UpdateAsync(order);
+
+        return ServiceResult.Success("Order status updated successfully.");
     }
 
 }
