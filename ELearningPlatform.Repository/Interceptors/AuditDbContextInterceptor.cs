@@ -12,7 +12,7 @@ public class AuditDbContextInterceptor : SaveChangesInterceptor
         { EntityState.Modified, ModifiedBehavior }
     };
 
-
+    
     private static void AddBehavior(DbContext context, IAuditEntity auditEntity)
     {
         auditEntity.Created = DateTime.UtcNow;
