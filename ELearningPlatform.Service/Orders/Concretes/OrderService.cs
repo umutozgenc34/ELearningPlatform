@@ -4,6 +4,7 @@ using ELearningPlatform.Model.Order.Entities;
 using ELearningPlatform.Model.Order.Enums;
 using ELearningPlatform.Repository.Orders.Abstracts;
 using ELearningPlatform.Service.Baskets.Abstracts;
+using ELearningPlatform.Service.Discounts.Abstracts;
 using ELearningPlatform.Service.Orders.Abstracts;
 using ELearningPlatform.Service.Payment.Abstracts;
 using System.Net;
@@ -16,20 +17,23 @@ public class OrderService : IOrderService
     private readonly IBasketService _basketService;
     private readonly IIdentityService _identityService;
     private readonly IPaymentService _paymentService;
+    private readonly IDiscountService _discountService;
 
     public OrderService(
         IOrderRepository orderRepository,
         IBasketService basketService,
         IIdentityService identityService,
-        IPaymentService paymentService)
+        IPaymentService paymentService,
+        IDiscountService discountService)
     {
         _orderRepository = orderRepository;
         _basketService = basketService;
         _identityService = identityService;
         _paymentService = paymentService;
+        _discountService = discountService;
     }
 
-    public async Task<ServiceResult> CreateOrderAsync()
+    public async Task<ServiceResult> CreateOrderAsync(string coupon)
     {
         var basketResult = await _basketService.GetBasketAsync();
 
@@ -48,6 +52,17 @@ public class OrderService : IOrderService
         }).ToList();
 
         var totalPrice = orderItems.Sum(item => item.Price);
+
+        if (!string.IsNullOrEmpty(coupon))
+        {
+            var discountResult = await _discountService.GetDiscountByCouponAsync(coupon); 
+            if (discountResult.IsSuccess)
+            {
+                var discount = discountResult.Data;
+                totalPrice -= totalPrice * (discount.Rate / 100); 
+            }
+        }
+
 
         var order = new Order
         {

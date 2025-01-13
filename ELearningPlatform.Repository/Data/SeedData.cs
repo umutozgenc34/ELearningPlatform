@@ -1,5 +1,6 @@
 ﻿using ELearningPlatform.Model.Categories.Entity;
 using ELearningPlatform.Model.Courses.Entities;
+using ELearningPlatform.Model.Discounts.Entity;
 using ELearningPlatform.Repository.Contexts;
 using Microsoft.EntityFrameworkCore;
 
@@ -84,5 +85,19 @@ public static class SeedData
             await context.Courses.AddRangeAsync(courses);
             await context.SaveChangesAsync();
         }
+
+        if (!context.Discounts.Any())
+        {
+            var discounts = new List<Discount>() 
+            {
+                new Discount { Coupon = "BABA10", Rate = 10 },
+                new Discount { Coupon = "BABA20", Rate = 20 },
+            };
+
+            await context.Discounts.AddRangeAsync(discounts);
+            await context.SaveChangesAsync();
+        }
+
+        
     }
 }

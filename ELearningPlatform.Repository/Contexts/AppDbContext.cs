@@ -1,5 +1,6 @@
 ﻿using ELearningPlatform.Model.Categories.Entity;
 using ELearningPlatform.Model.Courses.Entities;
+using ELearningPlatform.Model.Discounts.Entity;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection;
 
@@ -9,6 +10,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 {
     public DbSet<Category> Categories { get; set; }
     public DbSet<Course> Courses { get; set; }
+    public DbSet<Discount> Discounts { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

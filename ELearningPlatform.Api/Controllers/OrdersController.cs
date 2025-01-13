@@ -7,7 +7,7 @@ public class OrdersController(IOrderService orderService) : CustomBaseController
 {
         
     [HttpPost]
-    public async Task<IActionResult> CreateOrder() => CreateActionResult(await orderService.CreateOrderAsync());
+    public async Task<IActionResult> CreateOrder(string coupon) => CreateActionResult(await orderService.CreateOrderAsync(coupon));
     [HttpGet("{orderId}")]
     public async Task<IActionResult> GetOrder([FromRoute] string orderId) => CreateActionResult(await orderService.GetOrderByIdAsync(orderId));
     [HttpGet("user")]

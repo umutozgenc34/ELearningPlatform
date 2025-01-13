@@ -4,6 +4,8 @@ using ELearningPlatform.Service.Categories.Abstracts;
 using ELearningPlatform.Service.Categories.Concretes;
 using ELearningPlatform.Service.Courses.Abstracts;
 using ELearningPlatform.Service.Courses.Concretes;
+using ELearningPlatform.Service.Discounts.Abstracts;
+using ELearningPlatform.Service.Discounts.Concretes;
 using ELearningPlatform.Service.Orders.Abstracts;
 using ELearningPlatform.Service.Orders.Concretes;
 using ELearningPlatform.Service.Payment.Abstracts;
@@ -22,6 +24,7 @@ public static class ServiceExtensions
         services.AddScoped<IBasketService,BasketService>();
         services.AddScoped<IOrderService, OrderService>();
         services.AddScoped<IPaymentService, PaymentService>();
+        services.AddScoped<IDiscountService,DiscountService>();
 
         services.AddStackExchangeRedisCache(options =>
         {

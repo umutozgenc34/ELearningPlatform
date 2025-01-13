@@ -5,7 +5,7 @@ namespace ELearningPlatform.Service.Orders.Abstracts;
 
 public interface IOrderService
 {
-    Task<ServiceResult> CreateOrderAsync();
+    Task<ServiceResult> CreateOrderAsync(string coupon);
     Task<ServiceResult<Order>> GetOrderByIdAsync(string orderId);
     Task<ServiceResult<List<Order>>> GetUserOrdersAsync();
     Task<ServiceResult> DeleteOrderAsync(string orderId);
