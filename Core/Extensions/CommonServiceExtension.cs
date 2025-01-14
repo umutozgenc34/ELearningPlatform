@@ -15,7 +15,7 @@ public static class CommonServiceExtension
         services.AddFluentValidationAutoValidation();
         services.AddValidatorsFromAssemblyContaining(assembly);
 
-        services.AddScoped<IIdentityService,IdentityServiceFake>();
+        services.AddScoped<IIdentityService,IdentityService>();
         services.AddScoped<ICloudinaryService, CloudinaryService>();
         services.Configure<CloudinarySettings>(configuration.GetSection("CloudinarySettings"));
         return services;

@@ -1,6 +1,7 @@
 ﻿using ELearningPlatform.Model.User.Dtos.Create;
 using ELearningPlatform.Model.User.Dtos.Update;
 using ELearningPlatform.Service.Users.Abstracts;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ELearningPlatform.Api.Controllers;
@@ -10,6 +11,7 @@ public class UsersController(IUserService userService) : CustomBaseController
     [HttpPost("register")]
     public async Task<IActionResult> CreateUser([FromBody] CreateUserDto createUserDto)
        => Ok(await userService.CreateUserAsync(createUserDto));
+
 
     [HttpGet("username")]
     public async Task<IActionResult> GetUser()
@@ -22,6 +24,7 @@ public class UsersController(IUserService userService) : CustomBaseController
         return Ok(await userService.GetUserByNameAsync(userName));
     }
 
+    [Authorize(Roles = "Admin")]
     [HttpPost("CreateUserRoles/{userName}")]
     public async Task<IActionResult> CreateUserRoles(string userName, [FromBody] List<string> roles) => Ok(await userService
         .CreateUserRolesAsync(userName, roles));
@@ -35,10 +38,12 @@ public class UsersController(IUserService userService) : CustomBaseController
     public async Task<IActionResult> GetUserById([FromRoute] string id)
         => Ok(await userService.GetByIdAsync(id));
 
+    [Authorize(Roles = "Educator,Admin")]
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteUser([FromRoute] string id)
         => Ok(await userService.DeleteAsync(id));
 
+    [Authorize(Roles = "Educator,Admin")]
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdateUser([FromRoute] string id, [FromBody] UpdateUserRequest request)
         => Ok(await userService.UpdateAsync(id, request));

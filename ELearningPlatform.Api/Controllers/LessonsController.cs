@@ -1,33 +1,33 @@
 ﻿using ELearningPlatform.Model.Lessons.Dtos.Request;
-using ELearningPlatform.Model.Lessons.Dtos.Response;
-using ELearningPlatform.Service.Lessons;
 using ELearningPlatform.Service.Lessons.Abstracts;
-
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Threading.Tasks;
 
-namespace ELearningPlatform.Api.Controllers
+namespace ELearningPlatform.Api.Controllers;
+
+
+public class LessonsController(ILessonService lessonService) : CustomBaseController
 {
-
-    public class LessonsController(ILessonService lessonService) : CustomBaseController
-    {
-      
+    [Authorize]
     [HttpGet]
-        public async Task<IActionResult> GetLessons() => CreateActionResult(await lessonService.GetAllAsync());
+    public async Task<IActionResult> GetLessons() => CreateActionResult(await lessonService.GetAllAsync());
 
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetLesson(int id) => CreateActionResult(await lessonService.GetByIdAsync(id));
+    [Authorize]
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetLesson(int id) => CreateActionResult(await lessonService.GetByIdAsync(id));
 
-        [HttpPost]
-        [Consumes("multipart/form-data")] 
-        public async Task<IActionResult> CreateLesson([FromForm] CreateLessonRequest request) =>
-             CreateActionResult(await lessonService.CreateAsync(request));
+    [Authorize(Roles = "Educator,Admin")]
+    [HttpPost]
+    [Consumes("multipart/form-data")] 
+    public async Task<IActionResult> CreateLesson([FromForm] CreateLessonRequest request) =>
+         CreateActionResult(await lessonService.CreateAsync(request));
 
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateLesson(UpdateLessonRequest request) => CreateActionResult(await lessonService.UpdateAsync(request));
+    [Authorize(Roles = "Educator,Admin")]
+    [HttpPut("{id}")]
+    public async Task<IActionResult> UpdateLesson(UpdateLessonRequest request) => CreateActionResult(await lessonService.UpdateAsync(request));
 
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteLesson(int id) => CreateActionResult(await lessonService.DeleteAsync(id));
-    }
+    [Authorize(Roles = "Educator,Admin")]
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> DeleteLesson(int id) => CreateActionResult(await lessonService.DeleteAsync(id));
 }
 

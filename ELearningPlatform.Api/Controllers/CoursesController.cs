@@ -1,5 +1,6 @@
 ﻿using ELearningPlatform.Model.Courses.Dtos.Request;
 using ELearningPlatform.Service.Courses.Abstracts;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ELearningPlatform.Api.Controllers;
@@ -10,9 +11,10 @@ public class CoursesController(ICourseService courseService) : CustomBaseControl
     //public async Task<IActionResult> GetCourses() => CreateActionResult(await courseService.GetAllAsync());
     //[HttpGet("{id}")]
     //public async Task<IActionResult> GetCourse(Guid id) => CreateActionResult(await courseService.GetByIdAsync(id));
-
+    
     [HttpGet("details")]
     public async Task<IActionResult> GetCoursesWithDetails() => CreateActionResult(await courseService.GetAllCoursesWithDetailsAsync());
+    
     [HttpGet("{id:guid}/details")]
     public async Task<IActionResult> GetCourseWithDetails([FromRoute]Guid id) => CreateActionResult(await courseService.GetCourseWithDetailsAsync(id));
 
@@ -20,14 +22,18 @@ public class CoursesController(ICourseService courseService) : CustomBaseControl
     public async Task<IActionResult> GetCoursesByDescriptionKeyword([FromQuery] string keyword) =>
         CreateActionResult(await courseService.GetCoursesByDescriptionKeyword(keyword));
 
+    [Authorize(Roles = "Educator,Admin")]
     [HttpPost]
     [Consumes("multipart/form-data")]
     public async Task<IActionResult> CreateCourse([FromForm] CreateCourseRequest request) => CreateActionResult(await courseService
         .CreateAsync(request));
+    [Authorize(Roles = "Educator,Admin")]
     [HttpPut]
     [Consumes("multipart/form-data")]
     public async Task<IActionResult> UpdateCourse([FromForm]UpdateCourseRequest request) => CreateActionResult
         (await courseService.UpdateAsync(request));
+
+    [Authorize(Roles = "Educator,Admin")]
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> DeleteCourse([FromRoute]Guid id) => CreateActionResult(await courseService.DeleteAsync(id));
 }

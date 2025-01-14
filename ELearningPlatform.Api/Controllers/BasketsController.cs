@@ -1,5 +1,6 @@
 ﻿using ELearningPlatform.Model.Baskets.Dtos.Request;
 using ELearningPlatform.Service.Baskets.Abstracts;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ELearningPlatform.Api.Controllers;
