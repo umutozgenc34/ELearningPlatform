@@ -1,6 +1,5 @@
 ﻿using ELearningPlatform.Model.Courses.Dtos.Request;
 using ELearningPlatform.Service.Courses.Abstracts;
-using ELearningPlatform.Service.Courses.Concretes;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ELearningPlatform.Api.Controllers;
@@ -20,7 +19,6 @@ public class CoursesController(ICourseService courseService) : CustomBaseControl
     [HttpGet("search")]
     public async Task<IActionResult> GetCoursesByDescriptionKeyword([FromQuery] string keyword) =>
         CreateActionResult(await courseService.GetCoursesByDescriptionKeyword(keyword));
-    
 
     [HttpPost]
     [Consumes("multipart/form-data")]
