@@ -4,6 +4,7 @@ using ELearningPlatform.Repository.Contexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ELearningPlatform.Repository.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250114174432_AddUserEntitiess")]
+    partial class AddUserEntitiess
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -43,7 +46,7 @@ namespace ELearningPlatform.Repository.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Categories", (string)null);
+                    b.ToTable("Categories");
                 });
 
             modelBuilder.Entity("ELearningPlatform.Model.Courses.Entities.Course", b =>
@@ -79,7 +82,7 @@ namespace ELearningPlatform.Repository.Migrations
 
                     b.HasIndex("CategoryId");
 
-                    b.ToTable("Courses", (string)null);
+                    b.ToTable("Courses");
                 });
 
             modelBuilder.Entity("ELearningPlatform.Model.Discounts.Entity.Discount", b =>
@@ -100,7 +103,7 @@ namespace ELearningPlatform.Repository.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Discounts", (string)null);
+                    b.ToTable("Discounts");
                 });
 
             modelBuilder.Entity("ELearningPlatform.Model.Lessons.Entity.Lesson", b =>
@@ -133,7 +136,7 @@ namespace ELearningPlatform.Repository.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Lessons", (string)null);
+                    b.ToTable("Lessons");
                 });
 
             modelBuilder.Entity("ELearningPlatform.Model.Users.Entity.User", b =>
@@ -358,7 +361,7 @@ namespace ELearningPlatform.Repository.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.OwnsOne("ELearningPlatform.Model.Courses.Entities.Course.CourseDetails#ELearningPlatform.Model.Courses.Entities.CourseDetails", "CourseDetails", b1 =>
+                    b.OwnsOne("ELearningPlatform.Model.Courses.Entities.CourseDetails", "CourseDetails", b1 =>
                         {
                             b1.Property<Guid>("CourseId")
                                 .HasColumnType("uniqueidentifier");
@@ -382,7 +385,7 @@ namespace ELearningPlatform.Repository.Migrations
 
                             b1.HasKey("CourseId");
 
-                            b1.ToTable("Courses", (string)null);
+                            b1.ToTable("Courses");
 
                             b1.WithOwner()
                                 .HasForeignKey("CourseId");

@@ -4,6 +4,8 @@ using ELearningPlatform.Model.Courses.Entities;
 using ELearningPlatform.Model.Discounts.Entity;
 using ELearningPlatform.Repository.Contexts;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace ELearningPlatform.Repository.Data;
 
@@ -11,7 +13,18 @@ public static class SeedData
 {
     public static async Task Initialize(IServiceProvider serviceProvider, AppDbContext context)
     {
-        
+        var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+
+        var roles = new List<string> { "Admin", "User", "Educator" };
+
+        foreach (var role in roles)
+        {
+            if (!await roleManager.RoleExistsAsync(role))
+            {
+                await roleManager.CreateAsync(new IdentityRole(role));
+            }
+        }
+
         if (!context.Categories.Any())
         {
             var categories = new List<Category>

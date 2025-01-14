@@ -15,6 +15,12 @@ using ELearningPlatform.Service.Lessons;
 using ELearningPlatform.Service.Lessons.Abstracts;
 
 using Microsoft.Extensions.DependencyInjection;
+using ELearningPlatform.Service.Users.Abstracts;
+using ELearningPlatform.Service.Users.Concretes;
+using ELearningPlatform.Service.Token.Abstracts;
+using ELearningPlatform.Service.Token.Concretes;
+using ELearningPlatform.Service.Auth.Abstracts;
+using ELearningPlatform.Service.Auth.Concretes;
 
 namespace ELearningPlatform.Service.Extensions;
 
@@ -28,6 +34,9 @@ public static class ServiceExtensions
         services.AddScoped<IOrderService, OrderService>();
         services.AddScoped<IPaymentService, PaymentService>();
         services.AddScoped<IDiscountService,DiscountService>();
+        services.AddScoped<IUserService,UserService>();
+        services.AddScoped<ITokenService,TokenService>();
+        services.AddScoped<IAuthService,AuthService>();
 
         services.AddStackExchangeRedisCache(options =>
         {
