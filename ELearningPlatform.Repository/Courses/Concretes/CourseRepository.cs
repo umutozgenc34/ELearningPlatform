@@ -20,4 +20,7 @@ public class CourseRepository(AppDbContext context) : GenericRepository<AppDbCon
             .Include(c => c.CourseDetails) 
             .ToListAsync();
     }
+    public IQueryable<Course> GetCoursesByDescriptionKeyword(string keyword) => Context.Courses
+        .Where(c => !string.IsNullOrEmpty(c.Description) && EF.Functions.Like(c.Description, $"%{keyword}%"));
+
 }

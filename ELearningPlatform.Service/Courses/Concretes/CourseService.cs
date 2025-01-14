@@ -5,6 +5,7 @@ using ELearningPlatform.Model.Courses.Dtos.Request;
 using ELearningPlatform.Model.Courses.Dtos.Response;
 using ELearningPlatform.Model.Courses.Entities;
 using ELearningPlatform.Repository.Courses.Abstracts;
+using ELearningPlatform.Repository.Courses.Concretes;
 using ELearningPlatform.Repository.UnitOfWorks.Abstracts;
 using ELearningPlatform.Service.Courses.Abstracts;
 using Microsoft.EntityFrameworkCore;
@@ -80,6 +81,12 @@ public class CourseService(ICourseRepository courseRepository,IMapper mapper,IUn
 
     }
 
+    public async Task<ServiceResult<List<Course>>> GetCoursesByDescriptionKeyword(string keyword)
+    {
+        var courses = await courseRepository.GetCoursesByDescriptionKeyword(keyword).ToListAsync();
+        return ServiceResult<List<Course>>.Success(courses);
+    }
+
     public async Task<ServiceResult<CourseDto>> GetCourseWithDetailsAsync(Guid id)
     {
         var course = await courseRepository.GetCourseWithDetailsAsync(id);
@@ -120,4 +127,6 @@ public class CourseService(ICourseRepository courseRepository,IMapper mapper,IUn
 
         return ServiceResult.Success(HttpStatusCode.NoContent);
     }
+
+   
 }

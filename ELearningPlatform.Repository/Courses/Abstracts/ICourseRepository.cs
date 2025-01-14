@@ -7,4 +7,5 @@ public interface ICourseRepository : IGenericRepository<Course, Guid>
 {
     Task<Course?> GetCourseWithDetailsAsync(Guid courseId);
     Task<List<Course>> GetAllCoursesWithDetailsAsync();
+    IQueryable<Course> GetCoursesByDescriptionKeyword(string keyword);
 }
