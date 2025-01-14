@@ -49,6 +49,11 @@ public class CourseConfiguration : IEntityTypeConfiguration<Course>
 
         });
 
+        builder.HasMany(c => c.Lessons) 
+            .WithOne()
+            .HasForeignKey(l => l.CourseId) 
+            .OnDelete(DeleteBehavior.Cascade);
+
         builder.Navigation(c => c.CourseDetails).AutoInclude();
         builder.Navigation(c=> c.Category).AutoInclude();
             

@@ -1,6 +1,7 @@
 ﻿using AutoMapper.Features;
 using Core.Models;
 using ELearningPlatform.Model.Categories.Entity;
+using ELearningPlatform.Model.Lessons.Entity;
 
 namespace ELearningPlatform.Model.Courses.Entities;
 
@@ -17,4 +18,5 @@ public sealed class Course : BaseEntity<Guid>
     public CourseDetails CourseDetails { get; set; } = default!;
 
 
+    public ICollection<Lesson> Lessons { get; set; } = new List<Lesson>();
 }
