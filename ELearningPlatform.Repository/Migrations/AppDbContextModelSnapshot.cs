@@ -43,7 +43,7 @@ namespace ELearningPlatform.Repository.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Categories");
+                    b.ToTable("Categories", (string)null);
                 });
 
             modelBuilder.Entity("ELearningPlatform.Model.Courses.Entities.Course", b =>
@@ -79,7 +79,7 @@ namespace ELearningPlatform.Repository.Migrations
 
                     b.HasIndex("CategoryId");
 
-                    b.ToTable("Courses");
+                    b.ToTable("Courses", (string)null);
                 });
 
             modelBuilder.Entity("ELearningPlatform.Model.Discounts.Entity.Discount", b =>
@@ -100,7 +100,7 @@ namespace ELearningPlatform.Repository.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Discounts");
+                    b.ToTable("Discounts", (string)null);
                 });
 
             modelBuilder.Entity("ELearningPlatform.Model.Lessons.Entity.Lesson", b =>
@@ -133,9 +133,7 @@ namespace ELearningPlatform.Repository.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CourseId");
-
-                    b.ToTable("Lessons");
+                    b.ToTable("Lessons", (string)null);
                 });
 
             modelBuilder.Entity("ELearningPlatform.Model.Users.Entity.User", b =>
@@ -360,7 +358,7 @@ namespace ELearningPlatform.Repository.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.OwnsOne("ELearningPlatform.Model.Courses.Entities.CourseDetails", "CourseDetails", b1 =>
+                    b.OwnsOne("ELearningPlatform.Model.Courses.Entities.Course.CourseDetails#ELearningPlatform.Model.Courses.Entities.CourseDetails", "CourseDetails", b1 =>
                         {
                             b1.Property<Guid>("CourseId")
                                 .HasColumnType("uniqueidentifier");
@@ -384,7 +382,7 @@ namespace ELearningPlatform.Repository.Migrations
 
                             b1.HasKey("CourseId");
 
-                            b1.ToTable("Courses");
+                            b1.ToTable("Courses", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("CourseId");
@@ -394,17 +392,6 @@ namespace ELearningPlatform.Repository.Migrations
 
                     b.Navigation("CourseDetails")
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("ELearningPlatform.Model.Lessons.Entity.Lesson", b =>
-                {
-                    b.HasOne("ELearningPlatform.Model.Courses.Entities.Course", "Course")
-                        .WithMany("Lessons")
-                        .HasForeignKey("CourseId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Course");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -456,11 +443,6 @@ namespace ELearningPlatform.Repository.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("ELearningPlatform.Model.Courses.Entities.Course", b =>
-                {
-                    b.Navigation("Lessons");
                 });
 #pragma warning restore 612, 618
         }
