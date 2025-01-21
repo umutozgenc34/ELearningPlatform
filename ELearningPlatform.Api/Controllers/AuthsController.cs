@@ -8,6 +8,6 @@ namespace ELearningPlatform.Api.Controllers;
 public class AuthsController(IAuthService authService) : CustomBaseController
 {
     [HttpPost("login")]
-    public async Task<IActionResult> Login(LoginDto loginDto) => Ok(await authService.CreateTokenAsync(loginDto));
+    public async Task<IActionResult> Login(LoginDto loginDto) => CreateActionResult(await authService.CreateTokenAsync(loginDto));
 
 }
