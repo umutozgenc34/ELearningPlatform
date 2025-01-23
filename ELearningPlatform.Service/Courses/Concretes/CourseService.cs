@@ -4,6 +4,7 @@ using Core.Response;
 using ELearningPlatform.Model.Courses.Dtos.Request;
 using ELearningPlatform.Model.Courses.Dtos.Response;
 using ELearningPlatform.Model.Courses.Entities;
+using ELearningPlatform.Model.Lessons.Dtos.Response;
 using ELearningPlatform.Repository.Courses.Abstracts;
 using ELearningPlatform.Repository.Courses.Concretes;
 using ELearningPlatform.Repository.UnitOfWorks.Abstracts;
@@ -143,6 +144,19 @@ public class CourseService(ICourseRepository courseRepository,IMapper mapper,IUn
         var coursesAsDto = mapper.Map<List<CourseDto>>(courses);
 
         return ServiceResult<List<CourseDto>>.Success(coursesAsDto);
+    }
+
+    public async Task<ServiceResult<List<LessonDto>>> GetLessonsByCourseIdAsync(Guid courseId)
+    {
+        var course = await courseRepository.GetCourseWithLessonsAsync(courseId);
+
+        if (course is null)
+        {
+            return ServiceResult<List<LessonDto>>.Fail("Kurs bulunamadı.", HttpStatusCode.NotFound);
+        }
+
+        var lessonsDto = mapper.Map<List<LessonDto>>(course.Lessons);
+        return ServiceResult<List<LessonDto>>.Success(lessonsDto);
     }
 
 }

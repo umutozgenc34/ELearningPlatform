@@ -2,6 +2,7 @@
 using ELearningPlatform.Model.Courses.Dtos.Request;
 using ELearningPlatform.Model.Courses.Dtos.Response;
 using ELearningPlatform.Model.Courses.Entities;
+using ELearningPlatform.Model.Lessons.Dtos.Response;
 
 namespace ELearningPlatform.Service.Courses.Abstracts;
 
@@ -16,5 +17,6 @@ public interface ICourseService
     Task<ServiceResult> DeleteAsync(Guid id);
     Task <ServiceResult<List<Course>>> GetCoursesByDescriptionKeyword(string keyword);
     Task<ServiceResult<List<CourseDto>>> GetCoursesByCategoryIdAsync(int categoryId);
+    Task<ServiceResult<List<LessonDto>>> GetLessonsByCourseIdAsync(Guid courseId);
 
 }

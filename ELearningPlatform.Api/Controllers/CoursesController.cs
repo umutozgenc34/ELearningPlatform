@@ -1,5 +1,6 @@
 ﻿using ELearningPlatform.Model.Courses.Dtos.Request;
 using ELearningPlatform.Service.Courses.Abstracts;
+using ELearningPlatform.Service.Courses.Concretes;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -38,4 +39,10 @@ public class CoursesController(ICourseService courseService) : CustomBaseControl
 
     [HttpGet("byCategory")]
     public async Task<IActionResult> GetCoursesByCategoryId([FromQuery] int categoryId) => CreateActionResult(await courseService.GetCoursesByCategoryIdAsync(categoryId));
+
+    [HttpGet("{courseId}/lessons")]
+    public async Task<IActionResult> GetLessonsByCourseId(Guid courseId) => CreateActionResult(await courseService.GetLessonsByCourseIdAsync(courseId));
+    
+        
+    
 }
