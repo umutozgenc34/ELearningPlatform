@@ -128,5 +128,21 @@ public class CourseService(ICourseRepository courseRepository,IMapper mapper,IUn
         return ServiceResult.Success(HttpStatusCode.NoContent);
     }
 
-   
+    public async Task<ServiceResult<List<CourseDto>>> GetCoursesByCategoryIdAsync(int categoryId)
+    {
+        
+        var courses = await courseRepository
+            .Where(c => c.CategoryId == categoryId)
+            .ToListAsync();
+
+        if (!courses.Any())
+        {
+            return ServiceResult<List<CourseDto>>.Fail("Bu kategoriye ait kurs bulunamadı.", HttpStatusCode.NotFound);
+        }
+
+        var coursesAsDto = mapper.Map<List<CourseDto>>(courses);
+
+        return ServiceResult<List<CourseDto>>.Success(coursesAsDto);
+    }
+
 }

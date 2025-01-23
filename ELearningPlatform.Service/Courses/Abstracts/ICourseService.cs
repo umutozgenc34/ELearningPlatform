@@ -15,5 +15,6 @@ public interface ICourseService
     Task<ServiceResult> UpdateAsync(UpdateCourseRequest request);
     Task<ServiceResult> DeleteAsync(Guid id);
     Task <ServiceResult<List<Course>>> GetCoursesByDescriptionKeyword(string keyword);
+    Task<ServiceResult<List<CourseDto>>> GetCoursesByCategoryIdAsync(int categoryId);
 
 }

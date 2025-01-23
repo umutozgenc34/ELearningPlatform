@@ -7,4 +7,5 @@ namespace ELearningPlatform.Repository.Categories.Concretes;
 
 public class CategoryRepository(AppDbContext context) : GenericRepository<AppDbContext,Category,int>(context),ICategoryRepository
 {
+
 }

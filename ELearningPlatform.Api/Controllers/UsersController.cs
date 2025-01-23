@@ -10,7 +10,7 @@ public class UsersController(IUserService userService) : CustomBaseController
 {
     [HttpPost("register")]
     public async Task<IActionResult> CreateUser([FromBody] CreateUserDto createUserDto)
-       => Ok(await userService.CreateUserAsync(createUserDto));
+       => CreateActionResult(await userService.CreateUserAsync(createUserDto));
 
 
     [HttpGet("username")]
@@ -21,31 +21,31 @@ public class UsersController(IUserService userService) : CustomBaseController
         {
             return NotFound("Kullanıcı adı bulunamadı.");
         }
-        return Ok(await userService.GetUserByNameAsync(userName));
+        return CreateActionResult(await userService.GetUserByNameAsync(userName));
     }
 
     [Authorize(Roles = "Admin")]
     [HttpPost("CreateUserRoles/{userName}")]
-    public async Task<IActionResult> CreateUserRoles(string userName, [FromBody] List<string> roles) => Ok(await userService
+    public async Task<IActionResult> CreateUserRoles(string userName, [FromBody] List<string> roles) => CreateActionResult(await userService
         .CreateUserRolesAsync(userName, roles));
 
 
     [HttpGet]
     public async Task<IActionResult> GetAllUsers()
-        => Ok(await userService.GetAllAsync());
+        => CreateActionResult(await userService.GetAllAsync());
 
     [HttpGet("{id}")]
     public async Task<IActionResult> GetUserById([FromRoute] string id)
-        => Ok(await userService.GetByIdAsync(id));
+        => CreateActionResult(await userService.GetByIdAsync(id));
 
     [Authorize(Roles = "Educator,Admin")]
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteUser([FromRoute] string id)
-        => Ok(await userService.DeleteAsync(id));
+        => CreateActionResult(await userService.DeleteAsync(id));
 
     [Authorize(Roles = "Educator,Admin")]
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdateUser([FromRoute] string id, [FromBody] UpdateUserRequest request)
-        => Ok(await userService.UpdateAsync(id, request));
+        => CreateActionResult(await userService.UpdateAsync(id, request));
 
 }

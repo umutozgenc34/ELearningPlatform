@@ -17,5 +17,8 @@ public class CreateUserRequestValidator : AbstractValidator<CreateUserDto>
         RuleFor(x => x.Password)
             .NotEmpty().WithMessage("Şifre boş olamaz.")
             .Length(6, 100).WithMessage("Şifre 6 ile 100 karakter arasında olmalıdır.");
+
+        RuleFor(x => x.Role)
+            .IsInEnum().WithMessage("Geçerli bir rol seçin."); 
     }
 }
