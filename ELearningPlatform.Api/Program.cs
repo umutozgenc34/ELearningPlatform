@@ -24,6 +24,8 @@ builder.Services.AddIdentity<User, IdentityRole>(opt =>
     opt.Password.RequireNonAlphanumeric = false;
 }).AddEntityFrameworkStores<AppDbContext>().AddDefaultTokenProviders();
 
+builder.Services.AddVersioningExtension();
+
 builder.WebHost.ConfigureKestrel(options =>
 {
     options.Limits.MaxRequestBodySize = 50 * 1024 * 1024;  // 50MB
@@ -77,7 +79,7 @@ using (var scope = app.Services.CreateScope())
     await SeedData.Initialize(services, context);
 }
 
-
+var apiVersionSet = app.AddVersionSetExtension();
 
 if (app.Environment.IsDevelopment())
 {
