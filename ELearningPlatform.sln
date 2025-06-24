@@ -21,6 +21,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ELearningPlatform.Api", "EL
 EndProject
 Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{172580AC-96EF-4735-898C-BD4D7D03D918}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{86816C19-05D2-4D19-B0D3-66589A394515}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Service.Test", "Service.Test\Service.Test.csproj", "{4BAE17EE-DEB7-4EC8-B858-00077F86CAC4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -51,6 +55,10 @@ Global
 		{172580AC-96EF-4735-898C-BD4D7D03D918}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{172580AC-96EF-4735-898C-BD4D7D03D918}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{172580AC-96EF-4735-898C-BD4D7D03D918}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4BAE17EE-DEB7-4EC8-B858-00077F86CAC4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4BAE17EE-DEB7-4EC8-B858-00077F86CAC4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4BAE17EE-DEB7-4EC8-B858-00077F86CAC4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4BAE17EE-DEB7-4EC8-B858-00077F86CAC4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -63,6 +71,7 @@ Global
 		{94500357-583C-4A56-8E1B-5FAA1ADA8BFA} = {BEA4210C-689F-4766-80AE-91EBE8DF9510}
 		{856D55CB-D63B-480E-844B-72347A80745D} = {BEA4210C-689F-4766-80AE-91EBE8DF9510}
 		{0B63A84A-1AB3-49F0-B9C3-85FE84031F80} = {BEA4210C-689F-4766-80AE-91EBE8DF9510}
+		{4BAE17EE-DEB7-4EC8-B858-00077F86CAC4} = {86816C19-05D2-4D19-B0D3-66589A394515}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {323E9931-185D-4833-A3CA-A6AF4C491861}
