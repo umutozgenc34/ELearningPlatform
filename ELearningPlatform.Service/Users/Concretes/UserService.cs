@@ -6,6 +6,7 @@ using ELearningPlatform.Model.User.Dtos.Update;
 using ELearningPlatform.Model.Users.Entity;
 using ELearningPlatform.Service.Users.Abstracts;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Logging;
 using System.Net;
 
 namespace ELearningPlatform.Service.Users.Concretes;
@@ -15,12 +16,14 @@ public class UserService : IUserService
     private readonly UserManager<User> _userManager;
     private readonly RoleManager<IdentityRole> _roleManager;
     private readonly IMapper _mapper;
+    private readonly ILogger<UserService> _logger;
 
-    public UserService(UserManager<User> userManager, IMapper mapper, RoleManager<IdentityRole> roleManager)
+    public UserService(UserManager<User> userManager, IMapper mapper, RoleManager<IdentityRole> roleManager,ILogger<UserService> logger)
     {
         _userManager = userManager;
         _mapper = mapper;
         _roleManager = roleManager;
+        _logger = logger;
     }
     public async Task<ServiceResult<UserDto>> CreateUserAsync(CreateUserDto createUserDto)
     {

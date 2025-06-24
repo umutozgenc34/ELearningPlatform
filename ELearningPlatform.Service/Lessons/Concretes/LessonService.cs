@@ -8,6 +8,7 @@ using ELearningPlatform.Repository.Lessons.Abstracts;
 using ELearningPlatform.Repository.UnitOfWorks.Abstracts;
 using ELearningPlatform.Service.Lessons.Abstracts;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace ELearningPlatform.Service.Lessons
 {
@@ -17,45 +18,54 @@ namespace ELearningPlatform.Service.Lessons
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly ICloudinaryService _cloudinaryService;
+        private readonly ILogger<LessonService> _logger;
 
-        public LessonService(ILessonRepository lessonRepository, IUnitOfWork unitOfWork, IMapper mapper,ICloudinaryService cloudinaryService)
+        public LessonService(ILessonRepository lessonRepository, IUnitOfWork unitOfWork,
+            IMapper mapper,ICloudinaryService cloudinaryService, ILogger<LessonService> logger)
         {
             _lessonRepository = lessonRepository;
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _cloudinaryService = cloudinaryService;
+            _logger = logger;
         }
-
-        // Tüm dersleri alır
         public async Task<ServiceResult<List<LessonDto>>> GetAllAsync()
         {
+            _logger.LogInformation("GetAllAsync called.");
+
             var lessons = await _lessonRepository.GetAll().ToListAsync();
-            var lessonDtos = _mapper.Map<List<LessonDto>>(lessons); // Entity'leri DTO'ya dönüştürür
+            var lessonDtos = _mapper.Map<List<LessonDto>>(lessons);
+
+            _logger.LogInformation("GetAllAsync returned {Count} lessons.", lessonDtos.Count);
             return ServiceResult<List<LessonDto>>.Success(lessonDtos);
         }
 
-        // ID'ye göre bir ders alır
         public async Task<ServiceResult<LessonDto>> GetByIdAsync(int Id)
         {
+            _logger.LogInformation("GetByIdAsync called for lesson ID: {Id}", Id);
+
             var lesson = await _lessonRepository.GetByIdAsync(Id);
             if (lesson == null)
             {
+                _logger.LogWarning("Lesson not found. ID: {Id}", Id);
                 return ServiceResult<LessonDto>.Fail($"Ders bulunamadı. Id: {Id}");
             }
 
             var lessonDto = _mapper.Map<LessonDto>(lesson);
+            _logger.LogInformation("Lesson found. ID: {Id}", Id);
             return ServiceResult<LessonDto>.Success(lessonDto);
         }
 
-        // Yeni bir ders ekler
         public async Task<ServiceResult<CreateLessonResponse>> CreateAsync(CreateLessonRequest request)
         {
-            
+            _logger.LogInformation("CreateAsync called for lesson: {Title}", request.Title);
+
             string videoUrl = string.Empty;
 
             if (request.VideoFile != null)
             {
                 videoUrl = await _cloudinaryService.UploadVideo(request.VideoFile, "lessons/videos");
+                _logger.LogInformation("Video uploaded successfully for lesson: {Title}", request.Title);
             }
 
             var lesson = _mapper.Map<Lesson>(request);
@@ -67,16 +77,19 @@ namespace ELearningPlatform.Service.Lessons
             await _unitOfWork.SaveChangesAsync();
 
             var lessonResponse = _mapper.Map<CreateLessonResponse>(lesson);
+            _logger.LogInformation("Lesson created successfully. ID: {Id}", lesson.Id);
 
             return ServiceResult<CreateLessonResponse>.Success(lessonResponse);
         }
 
-        // Mevcut bir dersi günceller
         public async Task<ServiceResult> UpdateAsync(UpdateLessonRequest request)
         {
+            _logger.LogInformation("UpdateAsync called for lesson ID: {Id}", request.Id);
+
             var lesson = await _lessonRepository.GetByIdAsync(request.Id);
             if (lesson == null)
             {
+                _logger.LogWarning("UpdateAsync failed. Lesson not found. ID: {Id}", request.Id);
                 return ServiceResult.Fail($"Ders bulunamadı. Id: {request.Id}");
             }
 
@@ -88,21 +101,25 @@ namespace ELearningPlatform.Service.Lessons
             _lessonRepository.Update(lesson);
             await _unitOfWork.SaveChangesAsync();
 
+            _logger.LogInformation("Lesson updated successfully. ID: {Id}", request.Id);
             return ServiceResult.Success();
         }
 
-        // Bir dersi siler
         public async Task<ServiceResult> DeleteAsync(int Id)
         {
+            _logger.LogInformation("DeleteAsync called for lesson ID: {Id}", Id);
+
             var lesson = await _lessonRepository.GetByIdAsync(Id);
             if (lesson == null)
             {
+                _logger.LogWarning("DeleteAsync failed. Lesson not found. ID: {Id}", Id);
                 return ServiceResult.Fail($"Ders silinemedi. Id: {Id} ile eşleşen bir ders bulunamadı.");
             }
 
             _lessonRepository.Delete(lesson);
             await _unitOfWork.SaveChangesAsync();
 
+            _logger.LogInformation("Lesson deleted successfully. ID: {Id}", Id);
             return ServiceResult.Success();
         }
     }

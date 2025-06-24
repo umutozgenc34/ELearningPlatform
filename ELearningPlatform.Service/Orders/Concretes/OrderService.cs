@@ -7,6 +7,7 @@ using ELearningPlatform.Service.Baskets.Abstracts;
 using ELearningPlatform.Service.Discounts.Abstracts;
 using ELearningPlatform.Service.Orders.Abstracts;
 using ELearningPlatform.Service.Payment.Abstracts;
+using Microsoft.Extensions.Logging;
 using System.Net;
 
 namespace ELearningPlatform.Service.Orders.Concretes;
@@ -17,25 +18,31 @@ public class OrderService : IOrderService
     private readonly IBasketService _basketService;
     private readonly IIdentityService _identityService;
     private readonly IDiscountService _discountService;
+    private readonly ILogger<OrderService> _logger;
 
     public OrderService(
         IOrderRepository orderRepository,
         IBasketService basketService,
         IIdentityService identityService,
-        IDiscountService discountService)
+        IDiscountService discountService,
+        ILogger<OrderService> logger)
     {
         _orderRepository = orderRepository;
         _basketService = basketService;
         _identityService = identityService;
         _discountService = discountService;
+        _logger = logger;
     }
+
 
     public async Task<ServiceResult> CreateOrderAsync(string coupon)
     {
-        var basketResult = await _basketService.GetBasketAsync();
+        _logger.LogInformation("CreateOrderAsync called with coupon: {Coupon}", coupon);
 
+        var basketResult = await _basketService.GetBasketAsync();
         if (!basketResult.IsSuccess || basketResult.Data == null)
         {
+            _logger.LogWarning("CreateOrderAsync failed. Basket not found or empty.");
             return ServiceResult.Fail("Basket not found or empty.");
         }
 
@@ -52,14 +59,18 @@ public class OrderService : IOrderService
 
         if (!string.IsNullOrEmpty(coupon))
         {
-            var discountResult = await _discountService.GetDiscountByCouponAsync(coupon); 
+            var discountResult = await _discountService.GetDiscountByCouponAsync(coupon);
             if (discountResult.IsSuccess)
             {
                 var discount = discountResult.Data;
-                totalPrice -= totalPrice * (discount.Rate / 100); 
+                totalPrice -= totalPrice * (discount.Rate / 100);
+                _logger.LogInformation("Discount applied. Coupon: {Coupon}, Rate: {Rate}", discount.Coupon, discount.Rate);
+            }
+            else
+            {
+                _logger.LogWarning("Invalid coupon code: {Coupon}", coupon);
             }
         }
-
 
         var order = new Order
         {
@@ -72,68 +83,83 @@ public class OrderService : IOrderService
         };
 
         await _orderRepository.CreateAsync(order);
-
         await _basketService.DeleteBasketAsync();
 
+        _logger.LogInformation("Order created successfully for User ID: {UserId}", order.UserId);
         return ServiceResult.Success("Sipariş oluşturuldu.");
     }
 
     public async Task<ServiceResult<Order>> GetOrderByIdAsync(string orderId)
     {
-        var order = await _orderRepository.GetByIdAsync(orderId);
+        _logger.LogInformation("GetOrderByIdAsync called for Order ID: {OrderId}", orderId);
 
+        var order = await _orderRepository.GetByIdAsync(orderId);
         if (order == null)
         {
+            _logger.LogWarning("Order not found. ID: {OrderId}", orderId);
             return ServiceResult<Order>.Fail("Order not found.", HttpStatusCode.NotFound);
         }
+
         order.Status = OrderStatus.Confirmed;
+        _logger.LogInformation("Order retrieved successfully. ID: {OrderId}", orderId);
         return ServiceResult<Order>.Success(order);
     }
 
     public async Task<ServiceResult<List<Order>>> GetUserOrdersAsync()
     {
         var userId = _identityService.GetUserId;
-        var orders = await _orderRepository.GetOrdersByUserIdAsync(userId);
+        _logger.LogInformation("GetUserOrdersAsync called for User ID: {UserId}", userId);
 
+        var orders = await _orderRepository.GetOrdersByUserIdAsync(userId);
         if (orders == null || !orders.Any())
         {
+            _logger.LogWarning("No orders found for User ID: {UserId}", userId);
             return ServiceResult<List<Order>>.Fail("No orders found.", HttpStatusCode.NotFound);
         }
 
+        _logger.LogInformation("Returned {Count} orders for User ID: {UserId}", orders.Count, userId);
         return ServiceResult<List<Order>>.Success(orders);
     }
 
     public async Task<ServiceResult> DeleteOrderAsync(string orderId)
     {
-        var order = await _orderRepository.GetByIdAsync(orderId);
+        _logger.LogInformation("DeleteOrderAsync called for Order ID: {OrderId}", orderId);
 
+        var order = await _orderRepository.GetByIdAsync(orderId);
         if (order == null)
         {
+            _logger.LogWarning("DeleteOrderAsync failed. Order not found. ID: {OrderId}", orderId);
             return ServiceResult.Fail("Order not found.", HttpStatusCode.NotFound);
         }
 
         await _orderRepository.DeleteAsync(orderId);
+        _logger.LogInformation("Order deleted successfully. ID: {OrderId}", orderId);
         return ServiceResult.Success();
     }
 
     public async Task<ServiceResult<List<Order>>> GetAllOrdersAsync()
     {
-        var orders = await _orderRepository.GetAllAsync();
+        _logger.LogInformation("GetAllOrdersAsync called.");
 
+        var orders = await _orderRepository.GetAllAsync();
         if (orders == null || !orders.Any())
         {
+            _logger.LogWarning("No orders found.");
             return ServiceResult<List<Order>>.Fail("No orders found.", HttpStatusCode.NotFound);
         }
 
+        _logger.LogInformation("Returned {Count} orders.", orders.Count);
         return ServiceResult<List<Order>>.Success(orders);
     }
 
     public async Task<ServiceResult> UpdateOrderStatusAsync(string orderId, OrderStatus status = OrderStatus.Pending)
     {
-        var order = await _orderRepository.GetByIdAsync(orderId);
+        _logger.LogInformation("UpdateOrderStatusAsync called for Order ID: {OrderId} with Status: {Status}", orderId, status);
 
+        var order = await _orderRepository.GetByIdAsync(orderId);
         if (order == null)
         {
+            _logger.LogWarning("Order not found for update. ID: {OrderId}", orderId);
             return ServiceResult.Fail("Order not found.");
         }
 
@@ -141,7 +167,7 @@ public class OrderService : IOrderService
         order.Updated = DateTime.UtcNow;
 
         await _orderRepository.UpdateAsync(order);
-
+        _logger.LogInformation("Order status updated successfully. ID: {OrderId}, New Status: {Status}", orderId, status);
         return ServiceResult.Success("Order status updated successfully.");
     }
 
