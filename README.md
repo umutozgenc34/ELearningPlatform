@@ -2,7 +2,7 @@
 
 Öğrencilerin kurs satın alıp derslerini izleyebildiği, eğitmenlerin kendi kurslarını ve derslerini yönetebildiği bir e-öğrenme platformu. Backend **ASP.NET Core 8 Web API**, frontend **React + TypeScript** ile geliştirildi.
 
-![Uygulama akışı: katalog, kurs detayı, sepet, ödeme ve siparişler](docs/images/00-demo.gif)
+![Uygulama akışı: katalog, kurs detayı, sepet, ödeme, siparişler ve ders izleme](docs/images/00-demo.gif)
 
 ---
 
@@ -16,13 +16,15 @@
 | --- | --- |
 | ![Sepet](docs/images/03-sepet.png) | ![Ödeme](docs/images/04-odeme.png) |
 
-| Siparişlerim | Eğitmen paneli |
+| Siparişlerim | Ders izleme |
 | --- | --- |
-| ![Siparişlerim](docs/images/05-siparisler.png) | ![Eğitmen paneli](docs/images/06-panel-kurslar.png) |
+| ![Siparişlerim](docs/images/05-siparisler.png) | ![Ders izleme](docs/images/09-ders-izleme.png) |
 
-| Kurs ve ders yönetimi | Mobil görünüm |
+| Eğitmen paneli | Kurs ve ders yönetimi |
 | --- | --- |
-| ![Kurs düzenleme](docs/images/07-panel-kurs-duzenle.png) | <img src="docs/images/08-mobil.png" alt="Mobil görünüm" width="260"> |
+| ![Eğitmen paneli](docs/images/06-panel-kurslar.png) | ![Kurs düzenleme](docs/images/07-panel-kurs-duzenle.png) |
+
+<p align="center"><img src="docs/images/08-mobil.png" alt="Mobil görünüm" width="300"></p>
 
 ---
 
