@@ -1,3 +1,4 @@
+﻿using Core.Configuration;
 using Core.Extensions;
 using Core.Options;
 using Core.Services;
@@ -10,7 +11,28 @@ using ELearningPlatform.Service.Extensions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 
+// .env dosyasındaki gizli bilgileri (bağlantı cümleleri, API anahtarları) ortam değişkeni olarak yükle.
+// Bu satır CreateBuilder'dan önce olmalı ki configuration bu değerleri görsün.
+DotEnv.Load();
+
 var builder = WebApplication.CreateBuilder(args);
+
+var missingSettings = new[]
+{
+    "ConnectionStrings:SqlCon",
+    "ConnectionStrings:MongoDb",
+    "TokenOption:SecurityKey",
+    "CloudinarySettings:CloudName",
+    "CloudinarySettings:ApiKey",
+    "CloudinarySettings:ApiSecret"
+}.Where(key => string.IsNullOrWhiteSpace(builder.Configuration[key])).ToList();
+
+if (missingSettings.Count > 0)
+{
+    throw new InvalidOperationException(
+        $"Eksik ayar(lar): {string.Join(", ", missingSettings)}. " +
+        "Proje kök dizininde .env dosyası olduğundan emin ol (.env.example dosyasını kopyalayıp doldurabilirsin).");
+}
 
 builder.Services.AddControllers();
 builder.Services.AddRepositoryExtension(builder.Configuration);

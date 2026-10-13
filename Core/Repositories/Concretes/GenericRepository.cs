@@ -17,7 +17,7 @@ public class GenericRepository<TContext, TEntity, TId>(TContext context) : IGene
 
     public IQueryable<TEntity> Where(Expression<Func<TEntity, bool>>? predicate = null)
     {
-        return predicate is null
+        return predicate is null 
             ? GetAll()
             : Context.Set<TEntity>().Where(predicate);
     }
