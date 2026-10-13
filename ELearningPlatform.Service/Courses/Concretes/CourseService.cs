@@ -5,8 +5,8 @@ using ELearningPlatform.Model.Courses.Dtos.Request;
 using ELearningPlatform.Model.Courses.Dtos.Response;
 using ELearningPlatform.Model.Courses.Entities;
 using ELearningPlatform.Model.Lessons.Dtos.Response;
+using ELearningPlatform.Repository.Categories.Abstracts;
 using ELearningPlatform.Repository.Courses.Abstracts;
-using ELearningPlatform.Repository.Courses.Concretes;
 using ELearningPlatform.Repository.UnitOfWorks.Abstracts;
 using ELearningPlatform.Service.Courses.Abstracts;
 using Microsoft.EntityFrameworkCore;
@@ -15,12 +15,19 @@ using System.Net;
 
 namespace ELearningPlatform.Service.Courses.Concretes;
 
-public class CourseService(ICourseRepository courseRepository,IMapper mapper,IUnitOfWork unitOfWork,
+public class CourseService(ICourseRepository courseRepository, ICategoryRepository categoryRepository, IMapper mapper, IUnitOfWork unitOfWork,
                             ICloudinaryService cloudinaryService, ILogger<CourseService> logger) : ICourseService
 {
     public async Task<ServiceResult<CreateCourseResponse>> CreateAsync(CreateCourseRequest request)
     {
         logger.LogInformation("CreateAsync called for course: {Name}", request.Name);
+
+        var category = await categoryRepository.GetByIdAsync(request.CategoryId);
+        if (category is null)
+        {
+            logger.LogWarning("CreateAsync failed. Category not found. CategoryId: {CategoryId}", request.CategoryId);
+            return ServiceResult<CreateCourseResponse>.Fail("Kategori bulunamadı.", HttpStatusCode.NotFound);
+        }
 
         string imageUrl = string.Empty;
         if (request.ImageFile != null)
@@ -31,6 +38,8 @@ public class CourseService(ICourseRepository courseRepository,IMapper mapper,IUn
 
         var course = mapper.Map<Course>(request);
         course.ImageUrl = imageUrl;
+        course.Category = category;
+        course.CourseDetails ??= new CourseDetails { EducatorFullName = "Bilinmeyen Eğitmen" };
 
         await courseRepository.AddAsync(course);
         await unitOfWork.SaveChangesAsync();
@@ -38,7 +47,7 @@ public class CourseService(ICourseRepository courseRepository,IMapper mapper,IUn
         var responseAsDto = mapper.Map<CreateCourseResponse>(course);
 
         logger.LogInformation("Course created successfully. ID: {Id}", responseAsDto.Id);
-        return ServiceResult<CreateCourseResponse>.SuccessAsCreated(responseAsDto, $"api/courses/{responseAsDto.Id}");
+        return ServiceResult<CreateCourseResponse>.SuccessAsCreated(responseAsDto, $"api/v1/courses/{responseAsDto.Id}");
     }
 
     public async Task<ServiceResult> DeleteAsync(Guid id)
@@ -85,7 +94,8 @@ public class CourseService(ICourseRepository courseRepository,IMapper mapper,IUn
     {
         logger.LogInformation("GetByIdAsync called for course ID: {Id}", id);
 
-        var course = await courseRepository.GetByIdAsync(id);
+        // FindAsync yerine sorgu kullanıyoruz ki Category ve CourseDetails (AutoInclude) da gelsin.
+        var course = await courseRepository.GetAll().FirstOrDefaultAsync(c => c.Id == id);
         if (course is null)
         {
             logger.LogWarning("GetByIdAsync failed. Course not found. ID: {Id}", id);
@@ -97,14 +107,19 @@ public class CourseService(ICourseRepository courseRepository,IMapper mapper,IUn
         return ServiceResult<CourseDto>.Success(courseAsDto);
     }
 
-    public async Task<ServiceResult<List<Course>>> GetCoursesByDescriptionKeyword(string keyword)
+    public async Task<ServiceResult<List<CourseDto>>> GetCoursesByDescriptionKeyword(string keyword)
     {
         logger.LogInformation("GetCoursesByDescriptionKeyword called. Keyword: {Keyword}", keyword);
 
-        var courses = await courseRepository.GetCoursesByDescriptionKeyword(keyword).ToListAsync();
+        var courses = string.IsNullOrWhiteSpace(keyword)
+            ? await courseRepository.GetAll().ToListAsync()
+            : await courseRepository.GetCoursesByDescriptionKeyword(keyword.Trim()).ToListAsync();
 
-        logger.LogInformation("GetCoursesByDescriptionKeyword returned {Count} courses.", courses.Count);
-        return ServiceResult<List<Course>>.Success(courses);
+        // Önceden entity'ler doğrudan dönüyordu; artık diğer uç noktalarla aynı DTO dönüyor.
+        var coursesAsDto = mapper.Map<List<CourseDto>>(courses);
+
+        logger.LogInformation("GetCoursesByDescriptionKeyword returned {Count} courses.", coursesAsDto.Count);
+        return ServiceResult<List<CourseDto>>.Success(coursesAsDto);
     }
 
     public async Task<ServiceResult<CourseDto>> GetCourseWithDetailsAsync(Guid id)
@@ -127,31 +142,30 @@ public class CourseService(ICourseRepository courseRepository,IMapper mapper,IUn
     {
         logger.LogInformation("UpdateAsync called for course ID: {Id}", request.Id);
 
-        var isCourseIdExist = await courseRepository
-            .Where(x => x.Id != request.Id)
-            .AnyAsync();
-
-        if (isCourseIdExist)
-        {
-            logger.LogWarning("UpdateAsync failed. A different course with ID: {Id} already exists.", request.Id);
-            return ServiceResult.Fail("Aynı Id'ye sahip bir kurs var", HttpStatusCode.BadRequest);
-        }
-
+        // Not: Burada önceden "Id'si farklı herhangi bir kurs var mı?" kontrolü vardı.
+        // Veritabanında başka bir kurs olduğu sürece bu hep true döndüğü için güncelleme hiç çalışmıyordu.
         var course = await courseRepository.GetByIdAsync(request.Id);
         if (course is null)
         {
             logger.LogWarning("UpdateAsync failed. Course not found. ID: {Id}", request.Id);
-            return ServiceResult.Fail("Course bulunamadı.", HttpStatusCode.NotFound);
+            return ServiceResult.Fail("Kurs bulunamadı.", HttpStatusCode.NotFound);
         }
 
-        if (request.ImageFile != null)
+        var category = await categoryRepository.GetByIdAsync(request.CategoryId);
+        if (category is null)
         {
-            string imageUrl = await cloudinaryService.UploadImage(request.ImageFile, "course-images");
-            course.ImageUrl = imageUrl;
-            logger.LogInformation("New image uploaded for course ID: {Id}", request.Id);
+            logger.LogWarning("UpdateAsync failed. Category not found. CategoryId: {CategoryId}", request.CategoryId);
+            return ServiceResult.Fail("Kategori bulunamadı.", HttpStatusCode.NotFound);
         }
 
         mapper.Map(request, course);
+
+        if (request.ImageFile != null)
+        {
+            course.ImageUrl = await cloudinaryService.UploadImage(request.ImageFile, "course-images");
+            logger.LogInformation("New image uploaded for course ID: {Id}", request.Id);
+        }
+
         courseRepository.Update(course);
         await unitOfWork.SaveChangesAsync();
 
@@ -164,15 +178,11 @@ public class CourseService(ICourseRepository courseRepository,IMapper mapper,IUn
         logger.LogInformation("GetCoursesByCategoryIdAsync called for category ID: {CategoryId}", categoryId);
 
         var courses = await courseRepository
+            .GetAll()
             .Where(c => c.CategoryId == categoryId)
             .ToListAsync();
 
-        if (!courses.Any())
-        {
-            logger.LogWarning("No courses found for category ID: {CategoryId}", categoryId);
-            return ServiceResult<List<CourseDto>>.Fail("Bu kategoriye ait kurs bulunamadı.", HttpStatusCode.NotFound);
-        }
-
+        // Kategoride kurs yoksa hata değil boş liste dönüyoruz; frontend "henüz kurs yok" gösterebilsin.
         var coursesAsDto = mapper.Map<List<CourseDto>>(courses);
 
         logger.LogInformation("{Count} course(s) found for category ID: {CategoryId}", coursesAsDto.Count, categoryId);
@@ -191,9 +201,8 @@ public class CourseService(ICourseRepository courseRepository,IMapper mapper,IUn
             return ServiceResult<List<LessonDto>>.Fail("Kurs bulunamadı.", HttpStatusCode.NotFound);
         }
 
-        var lessonsDto = mapper.Map<List<LessonDto>>(course.Lessons);
+        var lessonsDto = mapper.Map<List<LessonDto>>(course.Lessons.OrderBy(l => l.LessonOrder));
         logger.LogInformation("{Count} lessons found for course ID: {CourseId}", lessonsDto.Count, courseId);
         return ServiceResult<List<LessonDto>>.Success(lessonsDto);
     }
-
 }

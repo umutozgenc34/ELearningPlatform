@@ -49,8 +49,8 @@ public class CourseConfiguration : IEntityTypeConfiguration<Course>
 
         });
 
-        builder.HasMany(c => c.Lessons) 
-            .WithOne()
+        builder.HasMany(c => c.Lessons)
+            .WithOne(l => l.Course)
             .HasForeignKey(l => l.CourseId) 
             .OnDelete(DeleteBehavior.Cascade);
 

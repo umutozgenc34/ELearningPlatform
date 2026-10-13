@@ -7,6 +7,7 @@ using ELearningPlatform.Repository.UnitOfWorks.Abstracts;
 using ELearningPlatform.Service.Categories.Concretes;
 using Microsoft.Extensions.Logging;
 using Moq;
+using Service.Test.Helpers;
 using System.Net;
 
 namespace Service.Test;
@@ -41,7 +42,7 @@ public class CategoryServiceTests
         var request = new CreateCategoryRequest("TestCategory");
 
         _categoryRepositoryMock.Setup(repo => repo.Where(It.IsAny<System.Linq.Expressions.Expression<System.Func<Category, bool>>>()))
-            .Returns(new List<Category> { new Category { Name = "TestCategory" } }.AsQueryable());
+            .Returns(new List<Category> { new Category { Name = "TestCategory" } }.AsAsyncQueryable());
 
         // Act
         var result = await _categoryService.CreateAsync(request);
@@ -49,7 +50,7 @@ public class CategoryServiceTests
         // Assert
         Assert.IsFalse(result.IsSuccess);
         Assert.AreEqual(HttpStatusCode.BadRequest, result.Status);
-        Assert.AreEqual("Aynı isimde bir kategori var.", result.Message);
+        Assert.That(result.ErrorMessage, Does.Contain("Aynı isimde bir kategori var."));
     }
 
     [Test]
@@ -61,7 +62,7 @@ public class CategoryServiceTests
         var createdResponse = new CreateCategoryResponse(1, request.Name, DateTime.Now);
 
         _categoryRepositoryMock.Setup(repo => repo.Where(It.IsAny<System.Linq.Expressions.Expression<System.Func<Category, bool>>>()))
-            .Returns(Enumerable.Empty<Category>().AsQueryable());
+            .Returns(Enumerable.Empty<Category>().AsAsyncQueryable());
 
         _mapperMock.Setup(m => m.Map<Category>(request))
             .Returns(categoryEntity);

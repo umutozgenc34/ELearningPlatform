@@ -12,57 +12,34 @@ using System.Text.Json;
 
 namespace ELearningPlatform.Service.Baskets.Concretes;
 
-public class BasketService(IDistributedCache distributedCache,ICourseService courseService,IIdentityService identityService,
+public class BasketService(IDistributedCache distributedCache, ICourseService courseService, IIdentityService identityService,
                             ILogger<BasketService> logger) : IBasketService
 {
     public async Task<ServiceResult> AddBasketItemAsync(CreateBasketItemRequest request)
     {
         logger.LogInformation("AddBasketItemAsync called for CourseId: {CourseId}", request.CourseId);
 
-        string userId = identityService.GetUserId;
-        var cacheKey = string.Format(BasketConsts.BacketCacheKey, userId);
-
-        var basketAsString = await distributedCache.GetStringAsync(cacheKey);
-        BasketDto? currentBasket;
+        if (!TryGetCacheKey(out var userId, out var cacheKey))
+        {
+            return ServiceResult.Fail("Kullanıcı bulunamadı.", HttpStatusCode.Unauthorized);
+        }
 
         var courseResult = await courseService.GetByIdAsync(request.CourseId);
         if (!courseResult.IsSuccess || courseResult.Data == null)
         {
             logger.LogWarning("AddBasketItemAsync failed. Course not found. CourseId: {CourseId}", request.CourseId);
-            return ServiceResult.Fail("Course not found.");
+            return ServiceResult.Fail("Kurs bulunamadı.", HttpStatusCode.NotFound);
         }
 
         var course = courseResult.Data;
+        var currentBasket = await ReadBasketAsync(cacheKey) ?? new BasketDto(userId, new List<BasketItemDto>());
 
-        var newBasketItem = new BasketItemDto(
-            course.Id,
-            course.Name,
-            course.ImageUrl,
-            course.Price,
-            1
-        );
+        // Bir kurs sepete yalnızca bir kez eklenebilir; zaten varsa güncel bilgisiyle değiştiriyoruz.
+        currentBasket.Items.RemoveAll(x => x.Id == request.CourseId);
+        currentBasket.Items.Add(new BasketItemDto(course.Id, course.Name, course.ImageUrl, course.Price, null));
 
-        if (string.IsNullOrEmpty(basketAsString))
-        {
-            currentBasket = new BasketDto(userId, new List<BasketItemDto> { newBasketItem });
-            await CreateCacheAsync(currentBasket, cacheKey);
+        await WriteBasketAsync(currentBasket, cacheKey);
 
-            logger.LogInformation("Basket created and item added for UserId: {UserId}, CourseId: {CourseId}", userId, course.Id);
-            return ServiceResult.Success();
-        }
-
-        currentBasket = JsonSerializer.Deserialize<BasketDto>(basketAsString);
-
-        var existingBasketItem = currentBasket!.Items.FirstOrDefault(x => x.Id == request.CourseId);
-        if (existingBasketItem != null)
-        {
-            currentBasket.Items.Remove(existingBasketItem);
-            logger.LogInformation("Existing item removed from basket. CourseId: {CourseId}", request.CourseId);
-        }
-
-        currentBasket.Items.Add(newBasketItem);
-
-        await CreateCacheAsync(currentBasket, cacheKey);
         logger.LogInformation("Basket updated successfully for UserId: {UserId}", userId);
         return ServiceResult.Success();
     }
@@ -71,30 +48,24 @@ public class BasketService(IDistributedCache distributedCache,ICourseService cou
     {
         logger.LogInformation("DeleteBasketItemAsync called for ItemId: {ItemId}", id);
 
-        string userID = identityService.GetUserId;
-        var cacheKey = string.Format(BasketConsts.BacketCacheKey, userID);
-        var basketAsString = await distributedCache.GetStringAsync(cacheKey);
-
-        if (string.IsNullOrEmpty(basketAsString))
+        if (!TryGetCacheKey(out var userId, out var cacheKey))
         {
-            logger.LogWarning("DeleteBasketItemAsync failed. Basket not found for UserId: {UserId}", userID);
-            return ServiceResult.Fail("Basket not found", HttpStatusCode.NotFound);
+            return ServiceResult.Fail("Kullanıcı bulunamadı.", HttpStatusCode.Unauthorized);
         }
 
-        var currentBasket = JsonSerializer.Deserialize<BasketDto>(basketAsString);
-        var basketItemToDelete = currentBasket!.Items.FirstOrDefault(x => x.Id == id);
+        var currentBasket = await ReadBasketAsync(cacheKey);
+        var basketItemToDelete = currentBasket?.Items.FirstOrDefault(x => x.Id == id);
 
-        if (basketItemToDelete is null)
+        if (currentBasket is null || basketItemToDelete is null)
         {
             logger.LogWarning("DeleteBasketItemAsync failed. Item not found in basket. ItemId: {ItemId}", id);
-            return ServiceResult.Fail("Basket item not found", HttpStatusCode.NotFound);
+            return ServiceResult.Fail("Sepette bu kurs bulunamadı.", HttpStatusCode.NotFound);
         }
 
         currentBasket.Items.Remove(basketItemToDelete);
-        basketAsString = JsonSerializer.Serialize(currentBasket);
-        await distributedCache.SetStringAsync(cacheKey, basketAsString);
+        await WriteBasketAsync(currentBasket, cacheKey);
 
-        logger.LogInformation("Basket item deleted successfully. ItemId: {ItemId}", id);
+        logger.LogInformation("Basket item deleted successfully. ItemId: {ItemId}, UserId: {UserId}", id, userId);
         return ServiceResult.Success(HttpStatusCode.NoContent);
     }
 
@@ -102,17 +73,15 @@ public class BasketService(IDistributedCache distributedCache,ICourseService cou
     {
         logger.LogInformation("GetBasketAsync called.");
 
-        var cacheKey = string.Format(BasketConsts.BacketCacheKey, identityService.GetUserId);
-        var basketAsString = await distributedCache.GetStringAsync(cacheKey);
-
-        if (string.IsNullOrEmpty(basketAsString))
+        if (!TryGetCacheKey(out var userId, out var cacheKey))
         {
-            logger.LogWarning("GetBasketAsync failed. Basket not found.");
-            return ServiceResult<BasketDto>.Fail("Basket not found.", HttpStatusCode.NotFound);
+            return ServiceResult<BasketDto>.Fail("Kullanıcı bulunamadı.", HttpStatusCode.Unauthorized);
         }
 
-        var basket = JsonSerializer.Deserialize<BasketDto>(basketAsString);
-        logger.LogInformation("GetBasketAsync succeeded. Basket contains {Count} items.", basket?.Items.Count ?? 0);
+        // Sepet hiç oluşturulmadıysa hata yerine boş sepet dönüyoruz.
+        var basket = await ReadBasketAsync(cacheKey) ?? new BasketDto(userId, new List<BasketItemDto>());
+
+        logger.LogInformation("GetBasketAsync succeeded. Basket contains {Count} items.", basket.Items.Count);
         return ServiceResult<BasketDto>.Success(basket);
     }
 
@@ -120,20 +89,35 @@ public class BasketService(IDistributedCache distributedCache,ICourseService cou
     {
         logger.LogInformation("DeleteBasketAsync called.");
 
-        string userId = identityService.GetUserId;
-        var cacheKey = string.Format(BasketConsts.BacketCacheKey, userId);
+        if (!TryGetCacheKey(out var userId, out var cacheKey))
+        {
+            return ServiceResult.Fail("Kullanıcı bulunamadı.", HttpStatusCode.Unauthorized);
+        }
 
         await distributedCache.RemoveAsync(cacheKey);
 
         logger.LogInformation("Basket deleted successfully for UserId: {UserId}", userId);
-        return ServiceResult.Success();
+        return ServiceResult.Success(HttpStatusCode.NoContent);
     }
 
-    private async Task CreateCacheAsync(BasketDto basketDto, string cacheKey)
+    // Kullanıcı Id'si boşsa (token yok/okunamadı) tüm anonim istekler aynı "basket:" anahtarını paylaşıyordu.
+    // Bu yüzden Id yoksa işlemi reddediyoruz.
+    private bool TryGetCacheKey(out string userId, out string cacheKey)
+    {
+        userId = identityService.GetUserId;
+        cacheKey = string.Format(BasketConsts.BacketCacheKey, userId);
+        return !string.IsNullOrWhiteSpace(userId);
+    }
+
+    private async Task<BasketDto?> ReadBasketAsync(string cacheKey)
+    {
+        var basketAsString = await distributedCache.GetStringAsync(cacheKey);
+        return string.IsNullOrEmpty(basketAsString) ? null : JsonSerializer.Deserialize<BasketDto>(basketAsString);
+    }
+
+    private async Task WriteBasketAsync(BasketDto basketDto, string cacheKey)
     {
         var basketAsString = JsonSerializer.Serialize(basketDto);
         await distributedCache.SetStringAsync(cacheKey, basketAsString);
     }
-
 }
-

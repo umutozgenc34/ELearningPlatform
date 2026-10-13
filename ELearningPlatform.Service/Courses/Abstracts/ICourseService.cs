@@ -15,7 +15,7 @@ public interface ICourseService
     Task<ServiceResult<CreateCourseResponse>> CreateAsync(CreateCourseRequest request);
     Task<ServiceResult> UpdateAsync(UpdateCourseRequest request);
     Task<ServiceResult> DeleteAsync(Guid id);
-    Task <ServiceResult<List<Course>>> GetCoursesByDescriptionKeyword(string keyword);
+    Task<ServiceResult<List<CourseDto>>> GetCoursesByDescriptionKeyword(string keyword);
     Task<ServiceResult<List<CourseDto>>> GetCoursesByCategoryIdAsync(int categoryId);
     Task<ServiceResult<List<LessonDto>>> GetLessonsByCourseIdAsync(Guid courseId);
 

@@ -1,10 +1,9 @@
-﻿using ELearningPlatform.Model.Order.Entities;
+﻿using Core.Response;
 using ELearningPlatform.Model.Payment.Dtos;
-using ELearningPlatform.Service.Constants;
 
 namespace ELearningPlatform.Service.Payment.Abstracts;
 
 public interface IPaymentService
 {
-    Task<PaymentResult> ProcessPaymentAsync(PaymentRequest paymentRequest);
+    Task<ServiceResult> ProcessPaymentAsync(PaymentRequest paymentRequest);
 }

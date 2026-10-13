@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ELearningPlatform.Api.Controllers;
 
+// Sepet kullanıcıya özel olduğu için giriş yapmış olmak gerekiyor.
+[Authorize]
 public class BasketsController(IBasketService basketService) : CustomBaseController
 {
     [HttpPost("item")]
@@ -12,9 +14,11 @@ public class BasketsController(IBasketService basketService) : CustomBaseControl
         .AddBasketItemAsync(request));
 
     [HttpDelete("item/{id:guid}")]
-    public async Task<IActionResult> DeleteBasketItem([FromRoute]Guid id) => CreateActionResult(await basketService.DeleteBasketItemAsync(id));
+    public async Task<IActionResult> DeleteBasketItem([FromRoute] Guid id) => CreateActionResult(await basketService.DeleteBasketItemAsync(id));
 
     [HttpGet("user")]
     public async Task<IActionResult> GetBasket() => CreateActionResult(await basketService.GetBasketAsync());
 
+    [HttpDelete("user")]
+    public async Task<IActionResult> ClearBasket() => CreateActionResult(await basketService.DeleteBasketAsync());
 }

@@ -1,18 +1,20 @@
-﻿using ELearningPlatform.Model.Order.Entities;
+﻿using Core.Response;
 using ELearningPlatform.Model.Order.Enums;
 using ELearningPlatform.Model.Payment.Dtos;
-using ELearningPlatform.Service.Constants;
 using ELearningPlatform.Service.Orders.Abstracts;
 using ELearningPlatform.Service.Payment.Abstracts;
 using Microsoft.Extensions.Logging;
+using System.Net;
 
 namespace ELearningPlatform.Service.Payment.Concretes;
 
-//FAKE PAYMENT
-
+// SAHTE ÖDEME (gerçek bir ödeme sağlayıcısına bağlı değil).
+// Test için: kart numarası DeclinedTestCardNumber ise ödeme reddedilir, diğer tüm geçerli formatlı kartlar onaylanır.
 public class PaymentService : IPaymentService
 {
-    private readonly Random _random = new Random();
+    public const string DeclinedTestCardNumber = "4000000000000002";
+    private static readonly TimeSpan SimulatedDelay = TimeSpan.FromSeconds(2);
+
     private readonly IOrderService _orderService;
     private readonly ILogger<PaymentService> _logger;
 
@@ -22,58 +24,39 @@ public class PaymentService : IPaymentService
         _logger = logger;
     }
 
-    public async Task<PaymentResult> ProcessPaymentAsync(PaymentRequest paymentRequest)
+    public async Task<ServiceResult> ProcessPaymentAsync(PaymentRequest paymentRequest)
     {
         _logger.LogInformation("ProcessPaymentAsync called for Order ID: {OrderId}", paymentRequest.OrderId);
 
+        // GetOrderByIdAsync sipariş sahibini de kontrol ediyor; başkasının siparişi ödenemez.
         var orderResult = await _orderService.GetOrderByIdAsync(paymentRequest.OrderId);
-
         if (!orderResult.IsSuccess || orderResult.Data == null)
         {
             _logger.LogWarning("Payment failed. Order not found. Order ID: {OrderId}", paymentRequest.OrderId);
-            return new PaymentResult
-            {
-                IsSuccessful = false,
-                Message = "Order not found."
-            };
+            return ServiceResult.Fail("Sipariş bulunamadı.", HttpStatusCode.NotFound);
         }
 
         var order = orderResult.Data;
 
-        if (order.Status == OrderStatus.Pending)
+        // Önceki kodda bu kontrol tersti: sadece bekleyen (Pending) siparişler ödenebilir.
+        if (order.Status != OrderStatus.Pending)
         {
-            _logger.LogWarning("Payment cannot be processed. Order is still pending. Order ID: {OrderId}", order.Id);
-            return new PaymentResult
-            {
-                IsSuccessful = false,
-                Message = "Payment cannot be processed for this order."
-            };
+            _logger.LogWarning("Payment rejected. Order is not pending. Order ID: {OrderId}, Status: {Status}", order.Id, order.Status);
+            return ServiceResult.Fail("Bu sipariş için ödeme alınamaz (zaten ödenmiş veya iptal edilmiş).");
         }
 
-        var isPaymentSuccessful = _random.Next(1, 101) <= 80;
+        _logger.LogInformation("Payment simulation started for Order ID: {OrderId}.", order.Id);
+        await Task.Delay(SimulatedDelay);
 
-        _logger.LogInformation("Payment simulation started for Order ID: {OrderId}. Waiting 3 seconds...", order.Id);
-        await Task.Delay(3000); // 3 sn bekleme simülasyon
+        if (paymentRequest.CardNumber == DeclinedTestCardNumber)
+        {
+            // Sipariş Pending kalır, kullanıcı başka bir kartla tekrar deneyebilir.
+            _logger.LogWarning("Payment declined (test card). Order ID: {OrderId}", order.Id);
+            return ServiceResult.Fail("Ödeme reddedildi. Lütfen başka bir kartla tekrar deneyin.", HttpStatusCode.PaymentRequired);
+        }
 
-        if (isPaymentSuccessful)
-        {
-            await _orderService.UpdateOrderStatusAsync(order.Id, OrderStatus.Confirmed);
-            _logger.LogInformation("Payment succeeded. Order confirmed. Order ID: {OrderId}", order.Id);
-            return new PaymentResult
-            {
-                IsSuccessful = true,
-                Message = "Payment successful. Order completed."
-            };
-        }
-        else
-        {
-            await _orderService.UpdateOrderStatusAsync(order.Id, OrderStatus.Canceled);
-            _logger.LogWarning("Payment failed. Order canceled. Order ID: {OrderId}", order.Id);
-            return new PaymentResult
-            {
-                IsSuccessful = false,
-                Message = "Payment failed. Please try again."
-            };
-        }
+        await _orderService.UpdateOrderStatusAsync(order.Id, OrderStatus.Confirmed);
+        _logger.LogInformation("Payment succeeded. Order confirmed. Order ID: {OrderId}", order.Id);
+        return ServiceResult.Success("Ödeme başarılı, siparişiniz tamamlandı.");
     }
 }

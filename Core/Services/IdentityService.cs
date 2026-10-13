@@ -1,7 +1,7 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using System.Security.Claims;
+using Microsoft.AspNetCore.Http;
 
 namespace Core.Services;
-
 
 public class IdentityService : IIdentityService
 {
@@ -12,25 +12,20 @@ public class IdentityService : IIdentityService
         _httpContextAccessor = httpContextAccessor;
     }
 
-    public string GetUserId
-    {
-        get
-        {
-            var userIdClaim = _httpContextAccessor.HttpContext.User?.Claims
-                .FirstOrDefault(c => c.Type == "user_id")?.Value;
+    private ClaimsPrincipal? User => _httpContextAccessor.HttpContext?.User;
 
-            return userIdClaim ?? string.Empty;
-        }
-    }
+    // Token'a kullanıcı Id'si ClaimTypes.NameIdentifier olarak yazılıyor (TokenService).
+    // JWT içinde "nameid" adıyla taşınır, okunurken tekrar ClaimTypes.NameIdentifier'a çevrilir.
+    public string GetUserId =>
+        User?.FindFirst(ClaimTypes.NameIdentifier)?.Value
+        ?? User?.FindFirst("nameid")?.Value
+        ?? User?.FindFirst("sub")?.Value
+        ?? string.Empty;
 
-    public string UserName
-    {
-        get
-        {
-            var userNameClaim = _httpContextAccessor.HttpContext.User?.Claims
-                .FirstOrDefault(c => c.Type == "username")?.Value;
+    public string UserName =>
+        User?.FindFirst(ClaimTypes.Name)?.Value
+        ?? User?.FindFirst("unique_name")?.Value
+        ?? string.Empty;
 
-            return userNameClaim ?? string.Empty;
-        }
-    }
+    public bool IsInRole(string role) => User?.IsInRole(role) ?? false;
 }

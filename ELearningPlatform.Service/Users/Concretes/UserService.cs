@@ -27,6 +27,13 @@ public class UserService : IUserService
     }
     public async Task<ServiceResult<UserDto>> CreateUserAsync(CreateUserDto createUserDto)
     {
+        // Rolü kullanıcıyı oluşturmadan önce kontrol et; yoksa rolsüz yarım bir kullanıcı kalıyordu.
+        string roleName = createUserDto.Role.ToString();
+        if (!await _roleManager.RoleExistsAsync(roleName))
+        {
+            return ServiceResult<UserDto>.Fail($"'{roleName}' rolü mevcut değil.");
+        }
+
         var user = new User
         {
             Email = createUserDto.Email,
@@ -43,18 +50,14 @@ public class UserService : IUserService
             return ServiceResult<UserDto>.Fail(errors, HttpStatusCode.BadRequest);
         }
 
-        string roleName = createUserDto.Role.ToString(); 
-        var roleExist = await _roleManager.RoleExistsAsync(roleName);
-        if (!roleExist)
-        {
-            return ServiceResult<UserDto>.Fail($"'{roleName}' rolü mevcut değil.");
-        }
-
         var roleResult = await _userManager.AddToRoleAsync(user, roleName);
         if (!roleResult.Succeeded)
         {
-            return ServiceResult<UserDto>.Fail(roleResult.Errors.First().Description);
+            await _userManager.DeleteAsync(user);
+            return ServiceResult<UserDto>.Fail(roleResult.Errors.Select(x => x.Description).ToList());
         }
+
+        _logger.LogInformation("User registered: {UserName} ({Role})", user.UserName, roleName);
 
         var userAsDto = _mapper.Map<UserDto>(user);
         userAsDto.Roles = new List<string> { roleName };
@@ -106,17 +109,19 @@ public class UserService : IUserService
         {
             return ServiceResult.Fail(result.Errors.First().Description);
         }
-        return ServiceResult.Success("Kullanıcı silindi.", HttpStatusCode.NoContent);
+        return ServiceResult.Success(HttpStatusCode.NoContent);
     }
     public async Task<ServiceResult<List<UserDto>>> GetAllAsync()
     {
         var users = _userManager.Users.ToList();
-        if (!users.Any())
+        var userDtos = new List<UserDto>(users.Count);
+        foreach (var user in users)
         {
-            return ServiceResult<List<UserDto>>.Fail("Kullanıcı bulunamadı.", HttpStatusCode.NotFound);
+            var userDto = _mapper.Map<UserDto>(user);
+            userDto.Roles = (await _userManager.GetRolesAsync(user)).ToList();
+            userDtos.Add(userDto);
         }
-        
-        var userDtos = _mapper.Map<List<UserDto>>(users);
+
         return ServiceResult<List<UserDto>>.Success(userDtos, HttpStatusCode.OK);
     }
     public async Task<ServiceResult<UserDto>> GetByIdAsync(string id)
@@ -149,15 +154,18 @@ public class UserService : IUserService
         var user = await _userManager.FindByIdAsync(id);
         if (user is null)
         {
-            ServiceResult.Fail("Kullanıcı bulunamadı",HttpStatusCode.NotFound);
+            // Önceden burada "return" yoktu; kullanıcı bulunamayınca NullReferenceException fırlıyordu.
+            return ServiceResult.Fail("Kullanıcı bulunamadı", HttpStatusCode.NotFound);
         }
+
         user.UserName = request.UserName;
 
         var result = await _userManager.UpdateAsync(user);
-        if (result.Succeeded is false)
+        if (!result.Succeeded)
         {
-            ServiceResult.Fail(result.Errors.First().Description);
+            return ServiceResult.Fail(result.Errors.Select(x => x.Description).ToList());
         }
-        return ServiceResult.Success("Kullanıcı güncellendi.", HttpStatusCode.NoContent);
+
+        return ServiceResult.Success(HttpStatusCode.NoContent);
     }
 }

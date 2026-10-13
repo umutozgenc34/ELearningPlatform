@@ -4,26 +4,30 @@ using Core.Response;
 using ELearningPlatform.Model.Lessons.Dtos.Request;
 using ELearningPlatform.Model.Lessons.Dtos.Response;
 using ELearningPlatform.Model.Lessons.Entity;
+using ELearningPlatform.Repository.Courses.Abstracts;
 using ELearningPlatform.Repository.Lessons.Abstracts;
 using ELearningPlatform.Repository.UnitOfWorks.Abstracts;
 using ELearningPlatform.Service.Lessons.Abstracts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using System.Net;
 
 namespace ELearningPlatform.Service.Lessons
 {
     public class LessonService : ILessonService
     {
         private readonly ILessonRepository _lessonRepository;
+        private readonly ICourseRepository _courseRepository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly ICloudinaryService _cloudinaryService;
         private readonly ILogger<LessonService> _logger;
 
-        public LessonService(ILessonRepository lessonRepository, IUnitOfWork unitOfWork,
-            IMapper mapper,ICloudinaryService cloudinaryService, ILogger<LessonService> logger)
+        public LessonService(ILessonRepository lessonRepository, ICourseRepository courseRepository, IUnitOfWork unitOfWork,
+            IMapper mapper, ICloudinaryService cloudinaryService, ILogger<LessonService> logger)
         {
             _lessonRepository = lessonRepository;
+            _courseRepository = courseRepository;
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _cloudinaryService = cloudinaryService;
@@ -48,7 +52,7 @@ namespace ELearningPlatform.Service.Lessons
             if (lesson == null)
             {
                 _logger.LogWarning("Lesson not found. ID: {Id}", Id);
-                return ServiceResult<LessonDto>.Fail($"Ders bulunamadı. Id: {Id}");
+                return ServiceResult<LessonDto>.Fail($"Ders bulunamadı. Id: {Id}", HttpStatusCode.NotFound);
             }
 
             var lessonDto = _mapper.Map<LessonDto>(lesson);
@@ -59,6 +63,13 @@ namespace ELearningPlatform.Service.Lessons
         public async Task<ServiceResult<CreateLessonResponse>> CreateAsync(CreateLessonRequest request)
         {
             _logger.LogInformation("CreateAsync called for lesson: {Title}", request.Title);
+
+            // Veritabanında Lessons -> Courses yabancı anahtarı olmadığı için kursun varlığını burada kontrol ediyoruz.
+            if (await _courseRepository.GetByIdAsync(request.CourseId) is null)
+            {
+                _logger.LogWarning("CreateAsync failed. Course not found. CourseId: {CourseId}", request.CourseId);
+                return ServiceResult<CreateLessonResponse>.Fail("Kurs bulunamadı.", HttpStatusCode.NotFound);
+            }
 
             string videoUrl = string.Empty;
 
@@ -79,7 +90,7 @@ namespace ELearningPlatform.Service.Lessons
             var lessonResponse = _mapper.Map<CreateLessonResponse>(lesson);
             _logger.LogInformation("Lesson created successfully. ID: {Id}", lesson.Id);
 
-            return ServiceResult<CreateLessonResponse>.Success(lessonResponse);
+            return ServiceResult<CreateLessonResponse>.SuccessAsCreated(lessonResponse, $"api/v1/lessons/{lesson.Id}");
         }
 
         public async Task<ServiceResult> UpdateAsync(UpdateLessonRequest request)
@@ -90,9 +101,15 @@ namespace ELearningPlatform.Service.Lessons
             if (lesson == null)
             {
                 _logger.LogWarning("UpdateAsync failed. Lesson not found. ID: {Id}", request.Id);
-                return ServiceResult.Fail($"Ders bulunamadı. Id: {request.Id}");
+                return ServiceResult.Fail($"Ders bulunamadı. Id: {request.Id}", HttpStatusCode.NotFound);
             }
 
+            if (lesson.CourseId != request.CourseId && await _courseRepository.GetByIdAsync(request.CourseId) is null)
+            {
+                return ServiceResult.Fail("Kurs bulunamadı.", HttpStatusCode.NotFound);
+            }
+
+            lesson.CourseId = request.CourseId;
             lesson.Title = request.Title;
             lesson.VideoUrl = request.VideoUrl;
             lesson.LessonOrder = request.LessonOrder;
@@ -102,7 +119,7 @@ namespace ELearningPlatform.Service.Lessons
             await _unitOfWork.SaveChangesAsync();
 
             _logger.LogInformation("Lesson updated successfully. ID: {Id}", request.Id);
-            return ServiceResult.Success();
+            return ServiceResult.Success(HttpStatusCode.NoContent);
         }
 
         public async Task<ServiceResult> DeleteAsync(int Id)
@@ -113,14 +130,14 @@ namespace ELearningPlatform.Service.Lessons
             if (lesson == null)
             {
                 _logger.LogWarning("DeleteAsync failed. Lesson not found. ID: {Id}", Id);
-                return ServiceResult.Fail($"Ders silinemedi. Id: {Id} ile eşleşen bir ders bulunamadı.");
+                return ServiceResult.Fail($"Ders silinemedi. Id: {Id} ile eşleşen bir ders bulunamadı.", HttpStatusCode.NotFound);
             }
 
             _lessonRepository.Delete(lesson);
             await _unitOfWork.SaveChangesAsync();
 
             _logger.LogInformation("Lesson deleted successfully. ID: {Id}", Id);
-            return ServiceResult.Success();
+            return ServiceResult.Success(HttpStatusCode.NoContent);
         }
     }
 }

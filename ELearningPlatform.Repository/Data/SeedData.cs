@@ -6,6 +6,9 @@ using ELearningPlatform.Repository.Contexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+using ELearningPlatform.Model.Users.Entity;
 
 namespace ELearningPlatform.Repository.Data;
 
@@ -13,6 +16,9 @@ public static class SeedData
 {
     public static async Task Initialize(IServiceProvider serviceProvider, AppDbContext context)
     {
+        // Veritabanı yoksa oluşturur, bekleyen migration'ları uygular (docker'da sıfırdan kurulumda elle "update-database" gerekmez).
+        await context.Database.MigrateAsync();
+
         var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
 
         var roles = new List<string> { "Admin", "User", "Educator" };
@@ -40,21 +46,6 @@ public static class SeedData
             await context.Categories.AddRangeAsync(categories);
             await context.SaveChangesAsync();
         }
-        if (!context.Lessons.Any())
-        {
-            var lessons = new List<Lesson>
-    {
-        new() { CourseId = Guid.NewGuid(), Title = "Introduction to Game Development", VideoUrl = "https://example.com/game-development-intro", LessonOrder = 1, Created = DateTime.UtcNow, Updated = DateTime.UtcNow },
-        new() { CourseId = Guid.NewGuid(), Title = "HTML & CSS Basics", VideoUrl = "https://example.com/html-css-basics", LessonOrder = 1, Created = DateTime.UtcNow, Updated = DateTime.UtcNow },
-        new() { CourseId = Guid.NewGuid(), Title = "Understanding User Experience Design", VideoUrl = "https://example.com/ux-design", LessonOrder = 1, Created = DateTime.UtcNow, Updated = DateTime.UtcNow },
-        new() { CourseId = Guid.NewGuid(), Title = "Data Analysis with Python", VideoUrl = "https://example.com/data-analysis-python", LessonOrder = 1, Created = DateTime.UtcNow, Updated = DateTime.UtcNow },
-        new() { CourseId = Guid.NewGuid(), Title = "Introduction to Cyber Security", VideoUrl = "https://example.com/cyber-security-intro", LessonOrder = 1, Created = DateTime.UtcNow, Updated = DateTime.UtcNow }
-    };
-
-            await context.Lessons.AddRangeAsync(lessons);
-            await context.SaveChangesAsync();
-        }
-
         if (!context.Courses.Any())
         {
             var gameDevCategory = await context.Categories.FirstOrDefaultAsync(c => c.Name == "Game Development");
@@ -114,6 +105,20 @@ public static class SeedData
             await context.SaveChangesAsync();
         }
 
+        // Önceden dersler rastgele (var olmayan) kurs Id'leriyle ekleniyordu. Artık gerçek kurslara bağlanıyor.
+        if (!context.Lessons.Any())
+        {
+            var seededCourses = await context.Courses.OrderBy(c => c.Name).ToListAsync();
+            var lessons = seededCourses.SelectMany(course => new[]
+            {
+                new Lesson { CourseId = course.Id, Title = $"{course.Name} - Giriş", VideoUrl = "https://example.com/videos/intro.mp4", LessonOrder = 1 },
+                new Lesson { CourseId = course.Id, Title = $"{course.Name} - Temel Kavramlar", VideoUrl = "https://example.com/videos/basics.mp4", LessonOrder = 2 }
+            }).ToList();
+
+            await context.Lessons.AddRangeAsync(lessons);
+            await context.SaveChangesAsync();
+        }
+
         if (!context.Discounts.Any())
         {
             var discounts = new List<Discount>() 
@@ -126,6 +131,41 @@ public static class SeedData
             await context.SaveChangesAsync();
         }
 
+        await SeedAdminAsync(serviceProvider);
+
         
+    }
+
+    // .env'de SeedAdmin__Email ve SeedAdmin__Password tanımlıysa ilk çalıştırmada bir Admin kullanıcısı oluşturur.
+    // Kayıt ekranından sadece User/Educator olunabildiği için Admin'e ulaşmanın tek yolu bu.
+    private static async Task SeedAdminAsync(IServiceProvider serviceProvider)
+    {
+        var configuration = serviceProvider.GetRequiredService<IConfiguration>();
+        var email = configuration["SeedAdmin:Email"];
+        var password = configuration["SeedAdmin:Password"];
+        if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password)) return;
+
+        var userManager = serviceProvider.GetRequiredService<UserManager<User>>();
+        if (await userManager.FindByEmailAsync(email) is not null) return;
+
+        var admin = new User
+        {
+            Email = email,
+            UserName = configuration["SeedAdmin:UserName"] ?? "admin",
+            FirstName = "Admin",
+            LastName = "User",
+            EmailConfirmed = true
+        };
+
+        var result = await userManager.CreateAsync(admin, password);
+        if (result.Succeeded)
+        {
+            await userManager.AddToRoleAsync(admin, "Admin");
+        }
+        else
+        {
+            var logger = serviceProvider.GetRequiredService<ILoggerFactory>().CreateLogger("SeedData");
+            logger.LogWarning("Admin kullanıcısı oluşturulamadı: {Errors}", string.Join(", ", result.Errors.Select(e => e.Description)));
+        }
     }
 }

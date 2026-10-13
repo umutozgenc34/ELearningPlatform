@@ -1,6 +1,9 @@
-﻿using Core.Configuration;
+﻿using System.Net;
+using System.Text.Json.Serialization;
+using Core.Configuration;
 using Core.Extensions;
 using Core.Options;
+using Core.Response;
 using Core.Services;
 using ELearningPlatform.Model.Users.Entity;
 using ELearningPlatform.Repository.Contexts;
@@ -9,7 +12,10 @@ using ELearningPlatform.Repository.Extensions;
 using ELearningPlatform.Service;
 using ELearningPlatform.Service.Extensions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.OpenApi.Models;
 
 // .env dosyasındaki gizli bilgileri (bağlantı cümleleri, API anahtarları) ortam değişkeni olarak yükle.
 // Bu satır CreateBuilder'dan önce olmalı ki configuration bu değerleri görsün.
@@ -34,10 +40,30 @@ if (missingSettings.Count > 0)
         "Proje kök dizininde .env dosyası olduğundan emin ol (.env.example dosyasını kopyalayıp doldurabilirsin).");
 }
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        // Enum'lar JSON'da sayı yerine isim olarak gider/gelir (ör. "Pending", "Confirmed").
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    })
+    .ConfigureApiBehaviorOptions(options =>
+    {
+        // Validation hataları da diğer hatalarla aynı formatta dönsün: { "errorMessage": [...] }
+        options.InvalidModelStateResponseFactory = context =>
+        {
+            var errors = context.ModelState.Values
+                .SelectMany(v => v.Errors)
+                .Select(e => string.IsNullOrWhiteSpace(e.ErrorMessage) ? "Geçersiz istek." : e.ErrorMessage)
+                .Distinct()
+                .ToList();
+
+            return new BadRequestObjectResult(ServiceResult.Fail(errors));
+        };
+    });
+
 builder.Services.AddRepositoryExtension(builder.Configuration);
 builder.Services.AddServiceExtension(builder.Configuration);
-builder.Services.AddCommonServiceExtension(typeof(ServiceAssembly),builder.Configuration);
+builder.Services.AddCommonServiceExtension(typeof(ServiceAssembly), builder.Configuration);
 
 builder.Services.Configure<CustomTokenOption>(builder.Configuration.GetSection("TokenOption"));
 builder.Services.AddIdentity<User, IdentityRole>(opt =>
@@ -53,13 +79,15 @@ builder.WebHost.ConfigureKestrel(options =>
     options.Limits.MaxRequestBodySize = 50 * 1024 * 1024;  // 50MB
 });
 
+// Frontend'in adresi appsettings'teki "Cors:AllowedOrigins" listesinden okunur (varsayılan: Vite dev sunucusu).
+var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? ["http://localhost:5173"];
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll", builder =>
+    options.AddPolicy("Frontend", policy =>
     {
-        builder.AllowAnyOrigin()
-               .AllowAnyMethod()
-               .AllowAnyHeader();
+        policy.WithOrigins(allowedOrigins)
+              .AllowAnyMethod()
+              .AllowAnyHeader();
     });
 });
 
@@ -70,7 +98,7 @@ builder.Services.AddAuthentication(options =>
 })
 .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, opts =>
 {
-    var tokenOptions = builder.Configuration.GetSection("TokenOption").Get<CustomTokenOption>();
+    var tokenOptions = builder.Configuration.GetSection("TokenOption").Get<CustomTokenOption>()!;
     opts.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters()
     {
         NameClaimType = "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name",
@@ -85,14 +113,47 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-
-
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+{
+    // Swagger'daki "Authorize" butonu: login'den aldığın token'ı yapıştırıp korumalı uç noktaları deneyebilirsin.
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Login'den dönen accessToken değerini yapıştır (başına 'Bearer' yazmana gerek yok)."
+    });
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme { Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" } },
+            Array.Empty<string>()
+        }
+    });
+});
 
 var app = builder.Build();
 
-app.UseCors("AllowAll");
+// Beklenmeyen hatalarda (ör. Redis/Mongo kapalı) HTML hata sayfası yerine aynı JSON formatında cevap dön.
+app.UseExceptionHandler(errorApp =>
+{
+    errorApp.Run(async context =>
+    {
+        var exception = context.Features.Get<IExceptionHandlerFeature>()?.Error;
+        var logger = context.RequestServices.GetRequiredService<ILoggerFactory>().CreateLogger("UnhandledException");
+        logger.LogError(exception, "Unhandled exception for {Method} {Path}", context.Request.Method, context.Request.Path);
+
+        var message = app.Environment.IsDevelopment() && exception is not null
+            ? $"Sunucu hatası: {exception.Message}"
+            : "Beklenmeyen bir hata oluştu.";
+
+        context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+        await context.Response.WriteAsJsonAsync(ServiceResult.Fail(message, HttpStatusCode.InternalServerError));
+    });
+});
 
 using (var scope = app.Services.CreateScope())
 {
@@ -108,8 +169,13 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+else
+{
+    // Geliştirmede kapalı: frontend'in Vite proxy'si http üzerinden bağlanabilsin.
+    app.UseHttpsRedirection();
+}
 
-app.UseHttpsRedirection();
+app.UseCors("Frontend");
 
 app.UseAuthentication();
 app.UseAuthorization();

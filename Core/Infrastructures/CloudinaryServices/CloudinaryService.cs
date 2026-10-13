@@ -18,18 +18,19 @@ public sealed class CloudinaryService : ICloudinaryService
     }
     public async Task<string> UploadImage(IFormFile formFile, string imageDirectory)
     {
-        var imageUploadResult = new ImageUploadResult();
         if (formFile.Length > 0)
         {
             using var stream = formFile.OpenReadStream();
             var uploadParams = new ImageUploadParams()
             {
-                File = new FileDescription(formFile.Name, stream),
+                // formFile.Name form alanının adıdır ("ImageFile"); dosyanın gerçek adı FileName'de.
+                File = new FileDescription(formFile.FileName, stream),
                 Folder = imageDirectory
             };
-            imageUploadResult = await _cloudinary.UploadAsync(uploadParams);
-            string url = _cloudinary.Api.UrlImgUp.BuildUrl(imageUploadResult.PublicId);
-            return url;
+            var imageUploadResult = await _cloudinary.UploadAsync(uploadParams);
+            EnsureSuccess(imageUploadResult);
+            // SecureUrl uzantı ve versiyon bilgisini içeren tam https adresidir.
+            return imageUploadResult.SecureUrl.ToString();
         }
         return string.Empty;
     }
@@ -47,12 +48,19 @@ public sealed class CloudinaryService : ICloudinaryService
             };
 
             var videoUploadResult = await _cloudinary.UploadAsync(uploadParams);
+            EnsureSuccess(videoUploadResult);
 
-            string videoUrl = _cloudinary.Api.UrlVideoUp.BuildUrl(videoUploadResult.PublicId);
-
-            return videoUrl;
+            return videoUploadResult.SecureUrl.ToString();
         }
 
         return string.Empty; 
+    }
+
+    private static void EnsureSuccess(UploadResult result)
+    {
+        if (result.Error != null || result.SecureUrl == null)
+        {
+            throw new InvalidOperationException($"Cloudinary yüklemesi başarısız: {result.Error?.Message ?? "bilinmeyen hata"}");
+        }
     }
 }

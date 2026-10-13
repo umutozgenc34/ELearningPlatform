@@ -26,13 +26,12 @@ public class AuthService : IAuthService
     {
         if (loginDto == null) throw new ArgumentNullException(nameof(loginDto));
         var user = await _userManager.FindByEmailAsync(loginDto.Email);
-        if (user == null) return ServiceResult<TokenDto>.Fail("Email veya  Password yanlış", HttpStatusCode.BadRequest);
+        if (user == null) return ServiceResult<TokenDto>.Fail("Email veya şifre yanlış", HttpStatusCode.BadRequest);
         if (!await _userManager.CheckPasswordAsync(user, loginDto.Password))
         {
-            return ServiceResult<TokenDto>.Fail("Email veya Password yanlış", HttpStatusCode.BadRequest);
+            return ServiceResult<TokenDto>.Fail("Email veya şifre yanlış", HttpStatusCode.BadRequest);
         }
         var token = await _tokenService.CreateTokenAsync(user);
-        await _unitOfWork.SaveChangesAsync();
-        return ServiceResult<TokenDto>.Success(token, HttpStatusCode.Created);
+        return ServiceResult<TokenDto>.Success(token);
     }
 }

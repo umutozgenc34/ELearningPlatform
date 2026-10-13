@@ -22,14 +22,14 @@ public class TokenService : ITokenService
     }
     public async Task<TokenDto> CreateTokenAsync(User user)
     {
-        var accessTokenExpiration = DateTime.Now.AddMinutes(_tokenOption.AccessTokenExpiration);
+        var accessTokenExpiration = DateTime.UtcNow.AddMinutes(_tokenOption.AccessTokenExpiration);
         var securityKey = SignService.GetSymmetricSecurityKey(_tokenOption.SecurityKey);
         SigningCredentials signingCredentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256Signature);
         var claims = await GetClaims(user, _tokenOption.Audience);
         JwtSecurityToken jwtSecurityToken = new JwtSecurityToken(
             issuer: _tokenOption.Issuer,
             expires: accessTokenExpiration,
-            notBefore: DateTime.Now,
+            notBefore: DateTime.UtcNow,
             claims: claims,
             signingCredentials: signingCredentials);
         var handler = new JwtSecurityTokenHandler();
@@ -46,8 +46,8 @@ public class TokenService : ITokenService
         var userRoles = await _userManager.GetRolesAsync(user);
         var userList = new List<Claim> {
             new Claim(ClaimTypes.NameIdentifier,user.Id),
-            new Claim(JwtRegisteredClaimNames.Email, user.Email),
-            new Claim(ClaimTypes.Name,user.UserName),
+            new Claim(JwtRegisteredClaimNames.Email, user.Email ?? string.Empty),
+            new Claim(ClaimTypes.Name, user.UserName ?? string.Empty),
             new Claim(JwtRegisteredClaimNames.Jti,Guid.NewGuid().ToString())
             };
         userList.AddRange(audiences.Select(x => new Claim(JwtRegisteredClaimNames.Aud, x)));

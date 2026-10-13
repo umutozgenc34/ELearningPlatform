@@ -18,12 +18,6 @@ public class DiscountService(IDiscountRepository discountRepository,IMapper mapp
         logger.LogInformation("GetAllDiscountsAsync called.");
 
         var discounts = await discountRepository.GetAll().ToListAsync();
-        if (discounts == null || !discounts.Any())
-        {
-            logger.LogWarning("No discounts found.");
-            return ServiceResult<List<DiscountDto>>.Fail("No discounts found.");
-        }
-
         var discountDtos = mapper.Map<List<DiscountDto>>(discounts);
         logger.LogInformation("GetAllDiscountsAsync returned {Count} discounts.", discountDtos.Count);
         return ServiceResult<List<DiscountDto>>.Success(discountDtos);
@@ -33,11 +27,12 @@ public class DiscountService(IDiscountRepository discountRepository,IMapper mapp
     {
         logger.LogInformation("GetDiscountByCouponAsync called for coupon: {Coupon}", coupon);
 
-        var discount = await discountRepository.Where(d => d.Coupon == coupon).FirstOrDefaultAsync();
+        coupon = coupon?.Trim() ?? string.Empty;
+        var discount = await discountRepository.GetAll().FirstOrDefaultAsync(d => d.Coupon == coupon);
         if (discount == null)
         {
             logger.LogWarning("Discount not found for coupon: {Coupon}", coupon);
-            return ServiceResult<DiscountDto>.Fail("Discount with the specified coupon not found.");
+            return ServiceResult<DiscountDto>.Fail("Geçersiz kupon kodu.", HttpStatusCode.NotFound);
         }
 
         var discountDto = mapper.Map<DiscountDto>(discount);
@@ -49,6 +44,11 @@ public class DiscountService(IDiscountRepository discountRepository,IMapper mapp
     {
         logger.LogInformation("CreateDiscountAsync called for coupon: {Coupon}", request.Coupon);
 
+        if (request.Rate <= 0 || request.Rate > 100)
+        {
+            return ServiceResult<DiscountDto>.Fail("İndirim oranı 0'dan büyük, 100'den küçük veya eşit olmalı.");
+        }
+
         var existingDiscount = await discountRepository
             .Where(d => d.Coupon == request.Coupon)
             .FirstOrDefaultAsync();
@@ -56,7 +56,7 @@ public class DiscountService(IDiscountRepository discountRepository,IMapper mapp
         if (existingDiscount != null)
         {
             logger.LogWarning("CreateDiscountAsync failed. Discount with coupon '{Coupon}' already exists.", request.Coupon);
-            return ServiceResult<DiscountDto>.Fail("A discount with the same coupon already exists.");
+            return ServiceResult<DiscountDto>.Fail("Bu kupon kodu zaten var.");
         }
 
         var discountEntity = mapper.Map<Discount>(request);
@@ -77,13 +77,13 @@ public class DiscountService(IDiscountRepository discountRepository,IMapper mapp
         if (discount == null)
         {
             logger.LogWarning("DeleteDiscountAsync failed. Discount not found for coupon: {Coupon}", coupon);
-            return ServiceResult.Fail("Discount with the specified coupon not found.");
+            return ServiceResult.Fail("Kupon bulunamadı.", HttpStatusCode.NotFound);
         }
 
         discountRepository.Delete(discount);
         await unitOfWork.SaveChangesAsync();
 
         logger.LogInformation("Discount deleted successfully. Coupon: {Coupon}", coupon);
-        return ServiceResult.Success("Discount deleted successfully.");
+        return ServiceResult.Success(HttpStatusCode.NoContent);
     }
 }
