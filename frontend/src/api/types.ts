@@ -38,3 +38,49 @@ export interface CategoryDto {
   created: string
   updated: string
 }
+
+export interface CourseDetailsDto {
+  duration: number
+  rating: number
+  educatorFullName: string
+}
+
+export interface CourseDto {
+  id: string
+  name: string
+  description: string
+  price: number
+  imageUrl: string | null
+  created: string
+  updated: string
+  category: CategoryDto | null
+  courseDetails: CourseDetailsDto | null
+}
+
+export interface LessonDto {
+  id: number
+  courseId: string
+  title: string
+  videoUrl: string
+  lessonOrder: number
+  created: string
+  updated: string
+}
+
+export interface BasketItemDto {
+  id: string
+  name: string
+  imageUrl: string | null
+  price: number
+  priceByApplyDiscountRate: number | null
+}
+
+export interface BasketDto {
+  items: BasketItemDto[]
+  totalPrice: number
+}
+
+export interface DiscountDto {
+  coupon: string
+  rate: number
+}

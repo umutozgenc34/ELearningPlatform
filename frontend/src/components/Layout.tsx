@@ -1,8 +1,10 @@
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/useAuth'
+import { useBasket } from '../basket/useBasket'
 
 export function Layout() {
   const { user, status, logout } = useAuth()
+  const { itemCount } = useBasket()
   const navigate = useNavigate()
 
   const handleLogout = () => {
@@ -23,6 +25,12 @@ export function Layout() {
             <NavLink to="/" end>
               Keşfet
             </NavLink>
+            {status === 'authenticated' && (
+              <NavLink to="/sepet" aria-label={`Sepet, ${itemCount} kurs`}>
+                Sepet
+                {itemCount > 0 && <span className="count-badge">{itemCount}</span>}
+              </NavLink>
+            )}
           </nav>
 
           <div className="topbar__account">
