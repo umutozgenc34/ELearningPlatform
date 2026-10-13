@@ -84,3 +84,29 @@ export interface DiscountDto {
   coupon: string
   rate: number
 }
+
+export type OrderStatus = 'Pending' | 'Confirmed' | 'Canceled'
+
+export interface OrderItem {
+  courseId: string
+  courseName: string
+  price: number
+}
+
+export interface Order {
+  id: string
+  userId: string
+  orderItems: OrderItem[]
+  totalPrice: number
+  status: OrderStatus
+  created: string
+  updated: string
+}
+
+export interface PaymentRequest {
+  orderId: string
+  cardHolderName: string
+  cardNumber: string
+  expiryDate: string
+  cvv: string
+}

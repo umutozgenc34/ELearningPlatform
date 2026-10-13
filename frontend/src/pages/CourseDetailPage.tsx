@@ -7,12 +7,15 @@ import { useAuth } from '../auth/useAuth'
 import { useBasket } from '../basket/useBasket'
 import { CourseCover } from '../components/CourseCover'
 import { ErrorList } from '../components/ErrorList'
+import { useOwnedCourseIds } from '../hooks/useOwnedCourseIds'
 import { formatPrice, formatRating } from '../utils/format'
 
 export function CourseDetailPage() {
   const { id = '' } = useParams()
   const { status } = useAuth()
   const { contains, addItem } = useBasket()
+  const ownedIds = useOwnedCourseIds()
+  const [activeLessonId, setActiveLessonId] = useState<number | null>(null)
   const navigate = useNavigate()
   const location = useLocation()
 
@@ -53,6 +56,8 @@ export function CourseDetailPage() {
   }
 
   const inBasket = contains(course.id)
+  const owned = ownedIds.has(course.id)
+  const activeLesson = lessons.find((lesson) => lesson.id === activeLessonId) ?? null
   const details = course.courseDetails
 
   const handleAdd = async () => {
@@ -118,6 +123,16 @@ export function CourseDetailPage() {
             <h2 id="lessons-title" className="section-title">
               Müfredat
             </h2>
+            {owned && activeLesson && (
+              <div className="player">
+                <video key={activeLesson.id} src={activeLesson.videoUrl} controls autoPlay className="player__video">
+                  Tarayıcın video oynatmayı desteklemiyor.
+                </video>
+                <p className="player__title">
+                  {activeLesson.lessonOrder}. {activeLesson.title}
+                </p>
+              </div>
+            )}
             {lessons.length === 0 ? (
               <p className="page-status">Bu kursa henüz ders eklenmemiş.</p>
             ) : (
@@ -125,10 +140,24 @@ export function CourseDetailPage() {
                 {lessons.map((lesson) => (
                   <li key={lesson.id} className="lesson-list__item">
                     <span className="lesson-list__order">{lesson.lessonOrder}</span>
-                    <span className="lesson-list__title">{lesson.title}</span>
+                    {owned ? (
+                      <button
+                        type="button"
+                        className="lesson-list__play"
+                        aria-current={lesson.id === activeLessonId ? 'true' : undefined}
+                        onClick={() => setActiveLessonId(lesson.id)}
+                      >
+                        {lesson.title}
+                      </button>
+                    ) : (
+                      <span className="lesson-list__title">{lesson.title}</span>
+                    )}
                   </li>
                 ))}
               </ol>
+            )}
+            {!owned && lessons.length > 0 && (
+              <p className="purchase__note">Dersleri izlemek için kursu satın al.</p>
             )}
           </section>
         </div>
@@ -138,7 +167,9 @@ export function CourseDetailPage() {
           <div className="purchase__body">
             <p className="purchase__price">{formatPrice(course.price)}</p>
             <ErrorList messages={actionErrors} />
-            {inBasket ? (
+            {owned ? (
+              <p className="notice">Bu kurs senin. Müfredattan bir ders seçip izlemeye başlayabilirsin.</p>
+            ) : inBasket ? (
               <Link to="/sepet" className="button button--quiet button--block">
                 Sepette, sepete git
               </Link>
@@ -147,7 +178,7 @@ export function CourseDetailPage() {
                 {adding ? 'Ekleniyor…' : 'Sepete ekle'}
               </button>
             )}
-            {status !== 'authenticated' && (
+            {status !== 'authenticated' && !owned && (
               <p className="purchase__note">Sepete eklemek için giriş yapman gerekiyor.</p>
             )}
           </div>

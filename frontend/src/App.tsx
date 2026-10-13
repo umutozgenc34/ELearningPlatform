@@ -8,6 +8,8 @@ import { CourseDetailPage } from './pages/CourseDetailPage'
 import { HomePage } from './pages/HomePage'
 import { LoginPage } from './pages/LoginPage'
 import { NotFoundPage } from './pages/NotFoundPage'
+import { OrdersPage } from './pages/OrdersPage'
+import { PaymentPage } from './pages/PaymentPage'
 import { RegisterPage } from './pages/RegisterPage'
 
 export default function App() {
@@ -24,6 +26,22 @@ export default function App() {
                 element={
                   <RequireAuth>
                     <BasketPage />
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="odeme/:orderId"
+                element={
+                  <RequireAuth>
+                    <PaymentPage />
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="siparisler"
+                element={
+                  <RequireAuth>
+                    <OrdersPage />
                   </RequireAuth>
                 }
               />

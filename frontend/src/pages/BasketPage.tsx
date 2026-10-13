@@ -1,7 +1,8 @@
 import { useState, type FormEvent } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { getErrorMessages } from '../api/client'
 import { discountsApi } from '../api/discounts'
+import { ordersApi } from '../api/orders'
 import type { DiscountDto } from '../api/types'
 import { useBasket } from '../basket/useBasket'
 import { CourseCover } from '../components/CourseCover'
@@ -9,8 +10,10 @@ import { ErrorList } from '../components/ErrorList'
 import { formatPrice } from '../utils/format'
 
 export function BasketPage() {
-  const { basket, removeItem } = useBasket()
+  const { basket, removeItem, refresh } = useBasket()
+  const navigate = useNavigate()
   const [errors, setErrors] = useState<string[]>([])
+  const [checkingOut, setCheckingOut] = useState(false)
   const [removingId, setRemovingId] = useState<string | null>(null)
 
   const [couponInput, setCouponInput] = useState('')
@@ -47,6 +50,19 @@ export function BasketPage() {
       setCouponErrors(getErrorMessages(error))
     } finally {
       setCheckingCoupon(false)
+    }
+  }
+
+  const handleCheckout = async () => {
+    setErrors([])
+    setCheckingOut(true)
+    try {
+      const order = await ordersApi.create(discount?.coupon)
+      await refresh()
+      navigate(`/odeme/${order.id}`)
+    } catch (error) {
+      setErrors(getErrorMessages(error))
+      setCheckingOut(false)
     }
   }
 
@@ -147,10 +163,14 @@ export function BasketPage() {
             </div>
           </dl>
 
-          <button type="button" className="button button--primary button--block" disabled>
-            Siparişi tamamla
+          <button
+            type="button"
+            className="button button--primary button--block"
+            onClick={handleCheckout}
+            disabled={checkingOut}
+          >
+            {checkingOut ? 'Sipariş oluşturuluyor…' : 'Ödemeye geç'}
           </button>
-          <p className="purchase__note">Ödeme adımı bir sonraki aşamada eklenecek.</p>
         </aside>
       </div>
     </section>

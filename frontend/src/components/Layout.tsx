@@ -31,6 +31,7 @@ export function Layout() {
                 {itemCount > 0 && <span className="count-badge">{itemCount}</span>}
               </NavLink>
             )}
+            {status === 'authenticated' && <NavLink to="/siparisler">Siparişlerim</NavLink>}
           </nav>
 
           <div className="topbar__account">
