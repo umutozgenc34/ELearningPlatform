@@ -64,7 +64,6 @@ namespace ELearningPlatform.Service.Lessons
         {
             _logger.LogInformation("CreateAsync called for lesson: {Title}", request.Title);
 
-            // Veritabanında Lessons -> Courses yabancı anahtarı olmadığı için kursun varlığını burada kontrol ediyoruz.
             if (await _courseRepository.GetByIdAsync(request.CourseId) is null)
             {
                 _logger.LogWarning("CreateAsync failed. Course not found. CourseId: {CourseId}", request.CourseId);

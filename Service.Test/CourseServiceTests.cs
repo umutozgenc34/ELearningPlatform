@@ -31,7 +31,6 @@ public class CourseServiceTests
         _categoryRepositoryMock = new Mock<ICategoryRepository>();
         _unitOfWorkMock = new Mock<IUnitOfWork>();
 
-        // Gerçek AutoMapper profilleriyle çalışıyoruz ki mapping hataları da yakalansın.
         _mapper = new MapperConfiguration(cfg => cfg.AddMaps(typeof(ServiceAssembly).Assembly)).CreateMapper();
 
         _courseService = new CourseService(_courseRepositoryMock.Object, _categoryRepositoryMock.Object, _mapper,
@@ -52,7 +51,6 @@ public class CourseServiceTests
     [Test]
     public async Task UpdateAsync_WhenOtherCoursesExist_StillUpdates()
     {
-        // Eski kod "Id'si farklı başka kurs var mı" diye bakıp hata dönüyordu; yani 2+ kurs varken güncelleme imkansızdı.
         var course = new Course { Id = Guid.NewGuid(), Name = "Eski", Description = "Eski", Price = 10, CategoryId = 1 };
         var otherCourse = new Course { Id = Guid.NewGuid(), Name = "Diğer", Description = "Diğer", Price = 20, CategoryId = 1 };
 

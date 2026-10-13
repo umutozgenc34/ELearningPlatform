@@ -22,7 +22,6 @@ public class CourseConfiguration : IEntityTypeConfiguration<Course>
             .IsRequired()
             .HasColumnType("decimal(18,2)");
 
-        
         //relations conf
         builder.HasOne(c => c.Category)
             .WithMany()
@@ -32,7 +31,6 @@ public class CourseConfiguration : IEntityTypeConfiguration<Course>
         builder.Property(c => c.ImageUrl)
             .HasMaxLength(200);
 
-        
         //course details conf
 
         builder.OwnsOne(c => c.CourseDetails, cd =>

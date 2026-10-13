@@ -8,8 +8,6 @@ using System.Net;
 
 namespace ELearningPlatform.Service.Payment.Concretes;
 
-// SAHTE ÖDEME (gerçek bir ödeme sağlayıcısına bağlı değil).
-// Test için: kart numarası DeclinedTestCardNumber ise ödeme reddedilir, diğer tüm geçerli formatlı kartlar onaylanır.
 public class PaymentService : IPaymentService
 {
     public const string DeclinedTestCardNumber = "4000000000000002";
@@ -28,7 +26,6 @@ public class PaymentService : IPaymentService
     {
         _logger.LogInformation("ProcessPaymentAsync called for Order ID: {OrderId}", paymentRequest.OrderId);
 
-        // GetOrderByIdAsync sipariş sahibini de kontrol ediyor; başkasının siparişi ödenemez.
         var orderResult = await _orderService.GetOrderByIdAsync(paymentRequest.OrderId);
         if (!orderResult.IsSuccess || orderResult.Data == null)
         {
@@ -38,7 +35,6 @@ public class PaymentService : IPaymentService
 
         var order = orderResult.Data;
 
-        // Önceki kodda bu kontrol tersti: sadece bekleyen (Pending) siparişler ödenebilir.
         if (order.Status != OrderStatus.Pending)
         {
             _logger.LogWarning("Payment rejected. Order is not pending. Order ID: {OrderId}, Status: {Status}", order.Id, order.Status);
@@ -50,7 +46,6 @@ public class PaymentService : IPaymentService
 
         if (paymentRequest.CardNumber == DeclinedTestCardNumber)
         {
-            // Sipariş Pending kalır, kullanıcı başka bir kartla tekrar deneyebilir.
             _logger.LogWarning("Payment declined (test card). Order ID: {OrderId}", order.Id);
             return ServiceResult.Fail("Ödeme reddedildi. Lütfen başka bir kartla tekrar deneyin.", HttpStatusCode.PaymentRequired);
         }

@@ -3,8 +3,6 @@ using Microsoft.EntityFrameworkCore.Query;
 
 namespace Service.Test.Helpers;
 
-// EF Core'un AnyAsync / ToListAsync / FirstOrDefaultAsync gibi async metotları normal bir List.AsQueryable() üzerinde çalışmaz.
-// Bu yardımcı sınıf, mock repository'lerden dönen listeleri async sorgulanabilir hale getirir.
 public static class TestAsyncQueryableExtensions
 {
     public static IQueryable<T> AsAsyncQueryable<T>(this IEnumerable<T> source) => new TestAsyncEnumerable<T>(source);
@@ -22,7 +20,6 @@ internal class TestAsyncQueryProvider<TEntity>(IQueryProvider inner) : IAsyncQue
 
     public TResult ExecuteAsync<TResult>(Expression expression, CancellationToken cancellationToken = default)
     {
-        // TResult burada Task<T> olur; senkron sonucu hesaplayıp Task.FromResult ile sarıyoruz.
         var resultType = typeof(TResult).GetGenericArguments()[0];
         var executionResult = typeof(IQueryProvider)
             .GetMethods()

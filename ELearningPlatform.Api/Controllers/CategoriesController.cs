@@ -19,7 +19,6 @@ public class CategoriesController(ICategoryService categoryService) : CustomBase
     public async Task<IActionResult> CreateCategory([FromBody] CreateCategoryRequest request) => CreateActionResult(await categoryService
         .CreateAsync(request));
 
-    // Route'taki id esas alınır; body'deki Id ile çakışmasın diye route'takiyle değiştirilir.
     [Authorize(Roles = AppRoles.AdminOrEducator)]
     [HttpPut("{id:int}")]
     public async Task<IActionResult> UpdateCategory([FromRoute] int id, [FromBody] UpdateCategoryRequest request) => CreateActionResult

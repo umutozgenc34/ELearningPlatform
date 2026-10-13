@@ -17,8 +17,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.OpenApi.Models;
 
-// .env dosyasındaki gizli bilgileri (bağlantı cümleleri, API anahtarları) ortam değişkeni olarak yükle.
-// Bu satır CreateBuilder'dan önce olmalı ki configuration bu değerleri görsün.
 DotEnv.Load();
 
 var builder = WebApplication.CreateBuilder(args);
@@ -43,12 +41,10 @@ if (missingSettings.Count > 0)
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
-        // Enum'lar JSON'da sayı yerine isim olarak gider/gelir (ör. "Pending", "Confirmed").
         options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
     })
     .ConfigureApiBehaviorOptions(options =>
     {
-        // Validation hataları da diğer hatalarla aynı formatta dönsün: { "errorMessage": [...] }
         options.InvalidModelStateResponseFactory = context =>
         {
             var errors = context.ModelState.Values
@@ -79,7 +75,6 @@ builder.WebHost.ConfigureKestrel(options =>
     options.Limits.MaxRequestBodySize = 50 * 1024 * 1024;  // 50MB
 });
 
-// Frontend'in adresi appsettings'teki "Cors:AllowedOrigins" listesinden okunur (varsayılan: Vite dev sunucusu).
 var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? ["http://localhost:5173"];
 builder.Services.AddCors(options =>
 {
@@ -116,7 +111,6 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
-    // Swagger'daki "Authorize" butonu: login'den aldığın token'ı yapıştırıp korumalı uç noktaları deneyebilirsin.
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Name = "Authorization",
@@ -137,7 +131,6 @@ builder.Services.AddSwaggerGen(options =>
 
 var app = builder.Build();
 
-// Beklenmeyen hatalarda (ör. Redis/Mongo kapalı) HTML hata sayfası yerine aynı JSON formatında cevap dön.
 app.UseExceptionHandler(errorApp =>
 {
     errorApp.Run(async context =>
@@ -171,7 +164,6 @@ if (app.Environment.IsDevelopment())
 }
 else
 {
-    // Geliştirmede kapalı: frontend'in Vite proxy'si http üzerinden bağlanabilsin.
     app.UseHttpsRedirection();
 }
 

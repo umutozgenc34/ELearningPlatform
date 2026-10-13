@@ -94,7 +94,6 @@ public class CourseService(ICourseRepository courseRepository, ICategoryReposito
     {
         logger.LogInformation("GetByIdAsync called for course ID: {Id}", id);
 
-        // FindAsync yerine sorgu kullanıyoruz ki Category ve CourseDetails (AutoInclude) da gelsin.
         var course = await courseRepository.GetAll().FirstOrDefaultAsync(c => c.Id == id);
         if (course is null)
         {
@@ -115,7 +114,6 @@ public class CourseService(ICourseRepository courseRepository, ICategoryReposito
             ? await courseRepository.GetAll().ToListAsync()
             : await courseRepository.GetCoursesByDescriptionKeyword(keyword.Trim()).ToListAsync();
 
-        // Önceden entity'ler doğrudan dönüyordu; artık diğer uç noktalarla aynı DTO dönüyor.
         var coursesAsDto = mapper.Map<List<CourseDto>>(courses);
 
         logger.LogInformation("GetCoursesByDescriptionKeyword returned {Count} courses.", coursesAsDto.Count);
@@ -142,8 +140,6 @@ public class CourseService(ICourseRepository courseRepository, ICategoryReposito
     {
         logger.LogInformation("UpdateAsync called for course ID: {Id}", request.Id);
 
-        // Not: Burada önceden "Id'si farklı herhangi bir kurs var mı?" kontrolü vardı.
-        // Veritabanında başka bir kurs olduğu sürece bu hep true döndüğü için güncelleme hiç çalışmıyordu.
         var course = await courseRepository.GetByIdAsync(request.Id);
         if (course is null)
         {
@@ -182,7 +178,6 @@ public class CourseService(ICourseRepository courseRepository, ICategoryReposito
             .Where(c => c.CategoryId == categoryId)
             .ToListAsync();
 
-        // Kategoride kurs yoksa hata değil boş liste dönüyoruz; frontend "henüz kurs yok" gösterebilsin.
         var coursesAsDto = mapper.Map<List<CourseDto>>(courses);
 
         logger.LogInformation("{Count} course(s) found for category ID: {CategoryId}", coursesAsDto.Count, categoryId);

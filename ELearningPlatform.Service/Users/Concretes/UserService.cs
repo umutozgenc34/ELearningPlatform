@@ -27,7 +27,6 @@ public class UserService : IUserService
     }
     public async Task<ServiceResult<UserDto>> CreateUserAsync(CreateUserDto createUserDto)
     {
-        // Rolü kullanıcıyı oluşturmadan önce kontrol et; yoksa rolsüz yarım bir kullanıcı kalıyordu.
         string roleName = createUserDto.Role.ToString();
         if (!await _roleManager.RoleExistsAsync(roleName))
         {
@@ -154,7 +153,6 @@ public class UserService : IUserService
         var user = await _userManager.FindByIdAsync(id);
         if (user is null)
         {
-            // Önceden burada "return" yoktu; kullanıcı bulunamayınca NullReferenceException fırlıyordu.
             return ServiceResult.Fail("Kullanıcı bulunamadı", HttpStatusCode.NotFound);
         }
 

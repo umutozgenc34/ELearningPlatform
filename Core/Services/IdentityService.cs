@@ -14,8 +14,6 @@ public class IdentityService : IIdentityService
 
     private ClaimsPrincipal? User => _httpContextAccessor.HttpContext?.User;
 
-    // Token'a kullanıcı Id'si ClaimTypes.NameIdentifier olarak yazılıyor (TokenService).
-    // JWT içinde "nameid" adıyla taşınır, okunurken tekrar ClaimTypes.NameIdentifier'a çevrilir.
     public string GetUserId =>
         User?.FindFirst(ClaimTypes.NameIdentifier)?.Value
         ?? User?.FindFirst("nameid")?.Value

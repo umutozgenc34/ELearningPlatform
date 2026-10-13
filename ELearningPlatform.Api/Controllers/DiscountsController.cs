@@ -13,7 +13,6 @@ public class DiscountsController(IDiscountService discountService) : CustomBaseC
     public async Task<IActionResult> GetAllDiscounts() =>
         CreateActionResult(await discountService.GetAllDiscountsAsync());
 
-    // Sepet ekranında girilen kuponun geçerli olup olmadığını kontrol eder (giriş yapmış her kullanıcı).
     [Authorize]
     [HttpGet("validate/{coupon}")]
     public async Task<IActionResult> ValidateCoupon([FromRoute] string coupon) =>

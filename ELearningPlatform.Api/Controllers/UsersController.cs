@@ -13,7 +13,6 @@ public class UsersController(IUserService userService) : CustomBaseController
     public async Task<IActionResult> CreateUser([FromBody] CreateUserDto createUserDto)
        => CreateActionResult(await userService.CreateUserAsync(createUserDto));
 
-    // Giriş yapmış kullanıcının kendi bilgileri ve rolleri (frontend "ben kimim" için kullanır).
     [Authorize]
     [HttpGet("me")]
     public async Task<IActionResult> GetCurrentUser()
@@ -26,7 +25,6 @@ public class UsersController(IUserService userService) : CustomBaseController
         return CreateActionResult(await userService.GetUserByNameAsync(userName));
     }
 
-    // Eski adres, geriye dönük uyumluluk için duruyor.
     [Authorize]
     [HttpGet("username")]
     public Task<IActionResult> GetUser() => GetCurrentUser();

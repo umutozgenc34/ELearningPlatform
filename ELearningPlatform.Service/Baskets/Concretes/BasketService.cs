@@ -34,7 +34,6 @@ public class BasketService(IDistributedCache distributedCache, ICourseService co
         var course = courseResult.Data;
         var currentBasket = await ReadBasketAsync(cacheKey) ?? new BasketDto(userId, new List<BasketItemDto>());
 
-        // Bir kurs sepete yalnızca bir kez eklenebilir; zaten varsa güncel bilgisiyle değiştiriyoruz.
         currentBasket.Items.RemoveAll(x => x.Id == request.CourseId);
         currentBasket.Items.Add(new BasketItemDto(course.Id, course.Name, course.ImageUrl, course.Price, null));
 
@@ -78,7 +77,6 @@ public class BasketService(IDistributedCache distributedCache, ICourseService co
             return ServiceResult<BasketDto>.Fail("Kullanıcı bulunamadı.", HttpStatusCode.Unauthorized);
         }
 
-        // Sepet hiç oluşturulmadıysa hata yerine boş sepet dönüyoruz.
         var basket = await ReadBasketAsync(cacheKey) ?? new BasketDto(userId, new List<BasketItemDto>());
 
         logger.LogInformation("GetBasketAsync succeeded. Basket contains {Count} items.", basket.Items.Count);
@@ -100,8 +98,6 @@ public class BasketService(IDistributedCache distributedCache, ICourseService co
         return ServiceResult.Success(HttpStatusCode.NoContent);
     }
 
-    // Kullanıcı Id'si boşsa (token yok/okunamadı) tüm anonim istekler aynı "basket:" anahtarını paylaşıyordu.
-    // Bu yüzden Id yoksa işlemi reddediyoruz.
     private bool TryGetCacheKey(out string userId, out string cacheKey)
     {
         userId = identityService.GetUserId;

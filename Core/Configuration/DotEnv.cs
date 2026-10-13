@@ -1,11 +1,5 @@
 ﻿namespace Core.Configuration;
 
-/// <summary>
-/// Proje kök dizinindeki .env dosyasını okuyup içindeki değerleri ortam değişkeni olarak yükler.
-/// .NET, "ConnectionStrings__SqlCon" gibi çift alt çizgili isimleri "ConnectionStrings:SqlCon" ayarına çevirir,
-/// böylece appsettings.json'daki değerlerin yerine .env'deki değerler kullanılır.
-/// Zaten tanımlı bir ortam değişkeni (ör. Docker veya sunucu ayarı) varsa .env onu ezmez.
-/// </summary>
 public static class DotEnv
 {
     public const string FileName = ".env";

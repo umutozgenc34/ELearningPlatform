@@ -23,13 +23,11 @@ public sealed class CloudinaryService : ICloudinaryService
             using var stream = formFile.OpenReadStream();
             var uploadParams = new ImageUploadParams()
             {
-                // formFile.Name form alanının adıdır ("ImageFile"); dosyanın gerçek adı FileName'de.
                 File = new FileDescription(formFile.FileName, stream),
                 Folder = imageDirectory
             };
             var imageUploadResult = await _cloudinary.UploadAsync(uploadParams);
             EnsureSuccess(imageUploadResult);
-            // SecureUrl uzantı ve versiyon bilgisini içeren tam https adresidir.
             return imageUploadResult.SecureUrl.ToString();
         }
         return string.Empty;

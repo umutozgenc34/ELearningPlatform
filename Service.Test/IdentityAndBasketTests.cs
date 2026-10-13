@@ -21,8 +21,6 @@ public class IdentityServiceTests
     [Test]
     public void GetUserId_ReadsNameIdentifierClaimFromToken()
     {
-        // TokenService kullanıcı Id'sini ClaimTypes.NameIdentifier olarak yazıyor.
-        // Eskiden "user_id" claim'i arandığı için Id hep boş geliyordu.
         var httpContext = new DefaultHttpContext
         {
             User = new ClaimsPrincipal(new ClaimsIdentity(new[]
@@ -98,7 +96,7 @@ public class BasketServiceTests
 
         _identityMock.Setup(x => x.GetUserId).Returns("user-1");
         await _basketService.AddBasketItemAsync(new CreateBasketItemRequest(courseId));
-        await _basketService.AddBasketItemAsync(new CreateBasketItemRequest(courseId)); // aynı kurs ikinci kez eklenmez
+        await _basketService.AddBasketItemAsync(new CreateBasketItemRequest(courseId));
 
         var user1Basket = await _basketService.GetBasketAsync();
 

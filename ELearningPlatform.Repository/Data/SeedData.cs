@@ -16,7 +16,6 @@ public static class SeedData
 {
     public static async Task Initialize(IServiceProvider serviceProvider, AppDbContext context)
     {
-        // Veritabanı yoksa oluşturur, bekleyen migration'ları uygular (docker'da sıfırdan kurulumda elle "update-database" gerekmez).
         await context.Database.MigrateAsync();
 
         var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
@@ -105,7 +104,6 @@ public static class SeedData
             await context.SaveChangesAsync();
         }
 
-        // Önceden dersler rastgele (var olmayan) kurs Id'leriyle ekleniyordu. Artık gerçek kurslara bağlanıyor.
         if (!context.Lessons.Any())
         {
             var seededCourses = await context.Courses.OrderBy(c => c.Name).ToListAsync();
@@ -133,11 +131,8 @@ public static class SeedData
 
         await SeedAdminAsync(serviceProvider);
 
-        
     }
 
-    // .env'de SeedAdmin__Email ve SeedAdmin__Password tanımlıysa ilk çalıştırmada bir Admin kullanıcısı oluşturur.
-    // Kayıt ekranından sadece User/Educator olunabildiği için Admin'e ulaşmanın tek yolu bu.
     private static async Task SeedAdminAsync(IServiceProvider serviceProvider)
     {
         var configuration = serviceProvider.GetRequiredService<IConfiguration>();

@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ELearningPlatform.Api.Controllers;
 
-// Sepet kullanıcıya özel olduğu için giriş yapmış olmak gerekiyor.
 [Authorize]
 public class BasketsController(IBasketService basketService) : CustomBaseController
 {

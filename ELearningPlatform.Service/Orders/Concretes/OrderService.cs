@@ -59,7 +59,6 @@ public class OrderService : IOrderService
 
         if (!string.IsNullOrWhiteSpace(coupon))
         {
-            // Geçersiz kupon artık sessizce yok sayılmıyor; kullanıcıya hata dönüyoruz.
             var discountResult = await _discountService.GetDiscountByCouponAsync(coupon);
             if (!discountResult.IsSuccess || discountResult.Data is null)
             {
@@ -74,7 +73,6 @@ public class OrderService : IOrderService
 
         var order = new Order
         {
-            // Id'yi biz üretiyoruz ki ekleme sonrası frontend'e kesin olarak dönebilelim.
             Id = ObjectId.GenerateNewId().ToString(),
             UserId = _identityService.GetUserId,
             OrderItems = orderItems,
@@ -97,14 +95,12 @@ public class OrderService : IOrderService
 
         var order = ObjectId.TryParse(orderId, out _) ? await _orderRepository.GetByIdAsync(orderId) : null;
 
-        // Başkasının siparişini görmek isteyen kullanıcıya "yok" diyoruz (Admin hariç).
         if (order == null || (order.UserId != _identityService.GetUserId && !_identityService.IsInRole(AppRoles.Admin)))
         {
             _logger.LogWarning("Order not found. ID: {OrderId}", orderId);
             return ServiceResult<Order>.Fail("Sipariş bulunamadı.", HttpStatusCode.NotFound);
         }
 
-        // Not: Burada önceden order.Status = Confirmed yapılıyordu; bu yüzden ödeme kontrolü hiçbir zaman doğru çalışmıyordu.
         _logger.LogInformation("Order retrieved successfully. ID: {OrderId}", orderId);
         return ServiceResult<Order>.Success(order);
     }

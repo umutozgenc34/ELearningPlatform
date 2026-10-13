@@ -15,16 +15,12 @@ public class CourseMappingProfile : Profile
             .ForMember(dest => dest.Category, opt => opt.MapFrom(src => src.Category))
             .ReverseMap();
 
-       
         CreateMap<CreateCourseRequest, Course>();
 
-      
         CreateMap<Course, CreateCourseResponse>()
             .ForMember(dest => dest.CategoryName, opt => opt.MapFrom(src => src.Category.Name)) 
             .ForMember(dest => dest.CourseDetails, opt => opt.MapFrom(src => src.CourseDetails));
 
-
-       
         CreateMap<UpdateCourseRequest, Course>()
             .ForMember(dest => dest.Id, opt => opt.Ignore())
             .ForMember(dest => dest.ImageUrl, opt => opt.Ignore())

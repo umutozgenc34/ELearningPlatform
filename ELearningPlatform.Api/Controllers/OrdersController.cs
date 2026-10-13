@@ -8,7 +8,6 @@ namespace ELearningPlatform.Api.Controllers;
 [Authorize]
 public class OrdersController(IOrderService orderService) : CustomBaseController
 {
-    // Sepetteki kurslardan sipariş oluşturur. Kupon isteğe bağlı: POST /orders?coupon=BABA10
     [HttpPost]
     public async Task<IActionResult> CreateOrder([FromQuery] string? coupon) => CreateActionResult(await orderService.CreateOrderAsync(coupon));
 

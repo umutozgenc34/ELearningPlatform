@@ -20,11 +20,9 @@ public class CourseRepository(AppDbContext context) : GenericRepository<AppDbCon
             .Include(c => c.CourseDetails) 
             .ToListAsync();
     }
-    // Kurs adında veya açıklamasında geçen kelimeye göre arar.
     public IQueryable<Course> GetCoursesByDescriptionKeyword(string keyword) => Context.Courses
         .AsNoTracking()
         .Where(c => EF.Functions.Like(c.Name, $"%{keyword}%") || EF.Functions.Like(c.Description, $"%{keyword}%"));
-
 
     public async Task<Course?> GetCourseWithLessonsAsync(Guid courseId)
     {

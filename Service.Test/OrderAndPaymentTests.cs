@@ -104,7 +104,6 @@ public class OrderServiceTests
     [Test]
     public async Task GetOrderById_DoesNotChangeStatus()
     {
-        // Eskiden bu metot siparişin durumunu Confirmed'a çeviriyordu.
         var orderId = ObjectId.GenerateNewId().ToString();
         _orderRepositoryMock.Setup(x => x.GetByIdAsync(orderId))
             .ReturnsAsync(new Order { Id = orderId, UserId = "user-1", Status = OrderStatus.Pending });
