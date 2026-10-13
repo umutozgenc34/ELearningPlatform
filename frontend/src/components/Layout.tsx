@@ -3,7 +3,7 @@ import { useAuth } from '../auth/useAuth'
 import { useBasket } from '../basket/useBasket'
 
 export function Layout() {
-  const { user, status, logout } = useAuth()
+  const { user, status, logout, hasRole } = useAuth()
   const { itemCount } = useBasket()
   const navigate = useNavigate()
 
@@ -32,6 +32,7 @@ export function Layout() {
               </NavLink>
             )}
             {status === 'authenticated' && <NavLink to="/siparisler">Siparişlerim</NavLink>}
+            {hasRole('Educator', 'Admin') && <NavLink to="/panel">Eğitmen paneli</NavLink>}
           </nav>
 
           <div className="topbar__account">

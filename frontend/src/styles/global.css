@@ -1114,3 +1114,355 @@ h3 {
     grid-template-columns: 1fr;
   }
 }
+
+.panel .display {
+  margin-bottom: 20px;
+}
+
+.panel__tabs {
+  display: flex;
+  gap: 24px;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 32px;
+  overflow-x: auto;
+}
+
+.panel__tabs a {
+  color: var(--ink-soft);
+  text-decoration: none;
+  font-weight: 700;
+  padding: 10px 0;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -1px;
+  white-space: nowrap;
+}
+
+.panel__tabs a.active {
+  color: var(--ink);
+  border-bottom-color: var(--marker);
+}
+
+.panel__section {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.panel__section--narrow {
+  max-width: 720px;
+}
+
+.panel__toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.panel__toolbar .catalog__summary {
+  margin: 0;
+}
+
+.panel-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--line);
+}
+
+.panel-list__item {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 18px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.panel-list__item--compact {
+  grid-template-columns: minmax(0, 1fr) auto auto;
+}
+
+.panel-list__item > .error-box {
+  grid-column: 1 / -1;
+}
+
+.panel-list__main {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.panel-list__name {
+  color: var(--ink);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+a.panel-list__name:hover {
+  color: var(--violet);
+}
+
+.panel-list__meta {
+  display: flex;
+  gap: 14px;
+  color: var(--ink-soft);
+  font-size: var(--step--1);
+}
+
+.panel-list__actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.text-button--danger {
+  color: var(--danger);
+}
+
+.coupon-code {
+  font-family: var(--font-display);
+  letter-spacing: 0.04em;
+}
+
+.inline-form {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+  grid-column: 1 / -1;
+}
+
+.inline-form input,
+.lesson-row__form input {
+  font: inherit;
+  color: var(--ink);
+  background: var(--paper);
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius-control);
+  padding: 9px 12px;
+  min-width: 0;
+}
+
+.inline-form > input {
+  flex: 1;
+}
+
+.inline-form--add .field {
+  flex: 1;
+  min-width: 180px;
+}
+
+.inline-form--add .field--short {
+  flex: 0 0 120px;
+  min-width: 0;
+}
+
+.field textarea,
+.field select {
+  font: inherit;
+  color: var(--ink);
+  background: var(--paper);
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius-control);
+  padding: 11px 13px;
+  width: 100%;
+}
+
+.field textarea {
+  resize: vertical;
+  line-height: 1.5;
+}
+
+.field textarea:focus-visible,
+.field select:focus-visible,
+.inline-form input:focus-visible,
+.lesson-row__form input:focus-visible {
+  outline: none;
+  border-color: var(--violet);
+  box-shadow: 0 0 0 3px rgba(75, 59, 214, 0.18);
+  background: var(--surface);
+}
+
+.editor {
+  display: grid;
+  grid-template-columns: minmax(0, 520px) minmax(0, 1fr);
+  gap: clamp(28px, 4vw, 56px);
+  align-items: start;
+}
+
+.editor__lessons {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.editor__preview-link {
+  font-weight: 700;
+}
+
+.image-picker {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.image-picker__preview,
+.image-picker__empty {
+  width: 160px;
+  aspect-ratio: 16 / 10;
+  border-radius: 10px;
+  object-fit: cover;
+  background: var(--paper);
+  border: 1.5px dashed var(--line);
+}
+
+.image-picker__empty {
+  display: grid;
+  place-items: center;
+  color: var(--ink-soft);
+  font-size: var(--step--1);
+}
+
+.image-picker__button {
+  position: relative;
+}
+
+.lesson-manager {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-panel);
+  padding: clamp(20px, 3vw, 30px);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.lesson-rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--line);
+}
+
+.lesson-row {
+  display: grid;
+  grid-template-columns: 2.5ch minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 14px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.lesson-row > .error-box {
+  grid-column: 1 / -1;
+}
+
+.lesson-row--editing {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.lesson-row__form {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.lesson-row__form input:not(.lesson-row__order-input) {
+  flex: 1;
+}
+
+.lesson-row__order-input {
+  width: 64px;
+}
+
+.lesson-row__title {
+  color: var(--ink);
+  text-decoration: none;
+  font-weight: 700;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.lesson-row__title:hover {
+  color: var(--violet);
+}
+
+.lesson-row__actions {
+  display: flex;
+  gap: 14px;
+}
+
+.lesson-add {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 14px;
+  padding-top: 8px;
+}
+
+.lesson-add .field {
+  width: 100%;
+}
+
+.lesson-add__title {
+  font-size: var(--step-1);
+}
+
+.progress {
+  position: relative;
+  width: 100%;
+  height: 28px;
+  border-radius: 999px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  overflow: hidden;
+}
+
+.progress__bar {
+  height: 100%;
+  background: var(--marker);
+  transition: width 160ms linear;
+}
+
+.progress__label {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: var(--step--1);
+  font-weight: 700;
+}
+
+@media (max-width: 960px) {
+  .editor {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 560px) {
+  .panel-list__item {
+    grid-template-columns: 56px minmax(0, 1fr);
+  }
+
+  .panel-list__item .cover--thumb {
+    width: 56px;
+  }
+
+  .panel-list__item > .panel-list__actions {
+    grid-column: 2;
+  }
+
+  .panel-list__item--compact {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .panel__toolbar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
